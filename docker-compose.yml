@@ -1,0 +1,48 @@
+version: '2'
+services:
+  localdev:
+    build:
+      context: .
+      dockerfile: ./Dockerfile
+    command: go run main.go app.go model.go
+    environment:
+      - APP_DB_USERNAME=dev
+      - APP_DB_PASSWORD=dev
+      - APP_DB_NAME=dev
+    links:
+      - postgres
+    volumes:
+      - ./app/:/go/src/app
+      - /go/src/app/vendor
+      - /go/src/app/build
+    ports:
+      - "8080:8080"
+
+  test:
+    build:
+      context: .
+      dockerfile: ./Dockerfile
+    command: go test -v
+    environment:
+      - APP_DB_USERNAME=dev
+      - APP_DB_PASSWORD=dev
+      - APP_DB_NAME=test
+    links:
+      - postgres
+    volumes:
+      - ./app/:/go/src/app
+      - /go/src/app/vendor
+
+  postgres:
+    build:
+      context: .
+      dockerfile: ./Dockerfile.db
+    environment:
+      - POSTGRES_USER=dev
+      - POSTGRES_PASSWORD=dev
+      - POSTGRES_DB=dev
+    volumes:
+      - "postgres:/var/lib/postgresql/data"
+
+volumes:
+  postgres:
