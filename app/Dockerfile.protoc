@@ -1,0 +1,23 @@
+FROM golang:1.10.2-alpine3.7
+
+WORKDIR bin
+
+RUN apk --no-cache add --virtual .builddeps curl unzip autoconf automake make libtool g++
+RUN apk --no-cache add libstdc++ git
+RUN git clone https://github.com/google/protobuf.git --branch v3.5.1 --depth 1 && \
+  cd protobuf && \
+  git submodule update --init && \
+  ./autogen.sh && \
+  ./configure && \
+  make -j 3 && \
+  make install && \
+  make clean && \
+  cd .. && \
+  rm -r protobuf && \
+  apk del .builddeps && \
+  rm -rf /var/cache/apk/*
+
+RUN go get -u github.com/golang/protobuf/protoc-gen-go
+
+WORKDIR /go/src/app
+COPY . .

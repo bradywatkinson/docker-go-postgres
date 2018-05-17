@@ -1,0 +1,4 @@
+vendor/*
+_tools/src/
+certs/server.crt
+certs/server.key

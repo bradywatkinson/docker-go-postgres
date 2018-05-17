@@ -1,0 +1,100 @@
+version: '3'
+services:
+  app:
+    build:
+      context: ./app
+      dockerfile: Dockerfile.app
+    command: retool do reflex -c reflex.conf
+    environment:
+      - APP_DB_HOST=db
+      - APP_DB_USERNAME=dev
+      - APP_DB_PASSWORD=dev
+      - APP_DB_NAME=dev
+      - PORT=8080
+      - REALM=localdev
+    links:
+      - db
+    volumes:
+      - ./app:/go/src/app
+      - "vendor:/go/src/app/vendor"
+      - "_tools:/go/src/app/_tools"
+      - /go/src/app/build
+    ports:
+      - "8080:8080"
+
+  app_test:
+    build:
+      context: ./app
+      dockerfile: Dockerfile.app
+    command: sh -c "retool do golint `go list ./... | grep -v /vendor/` && retool do go test ./... -v"
+    environment:
+      - APP_DB_HOST=db
+      - APP_DB_USERNAME=dev
+      - APP_DB_PASSWORD=dev
+      - APP_DB_NAME=test
+      - PORT=8080
+      - REALM=test
+    links:
+      - db
+    volumes:
+      - ./app:/go/src/app
+      - "vendor:/go/src/app/vendor"
+      - "_tools:/go/src/app/_tools"
+      - /go/src/app/build
+
+  protoc:
+    build:
+      context: ./app
+      dockerfile: Dockerfile.protoc
+    entrypoint: protoc --go_out=plugins=grpc:.
+    volumes:
+      - ./app:/go/src/app
+      - "vendor:/go/src/app/vendor"
+      - "_tools:/go/src/app/_tools"
+      - /go/src/app/build
+
+  grpc_cli:
+    build:
+      context: ./app
+      dockerfile: Dockerfile.grpc_cli
+    entrypoint: /usr/bin/grpc_cli
+
+  alembic:
+    build:
+      context: ./db
+      dockerfile: Dockerfile.alembic
+    command: upgrade
+    entrypoint: python3 manage.py db
+    environment:
+      - PYTHONUNBUFFERED=true
+    links:
+      - db
+    volumes:
+      - ./db:/code
+
+  alembic_test:
+    build:
+      context: ./db
+      dockerfile: Dockerfile.alembic
+    entrypoint: flake8
+    volumes:
+      - ./db:/code
+    environment:
+      - REALM=test
+      - PYTHONUNBUFFERED=true
+
+  db:
+    build:
+      context: ./db
+      dockerfile: Dockerfile.postgres
+    environment:
+      - POSTGRES_USER=dev
+      - POSTGRES_PASSWORD=dev
+      - POSTGRES_DB=dev
+    volumes:
+      - "postgres:/var/lib/postgresql/data"
+
+volumes:
+  postgres:
+  vendor:
+  _tools:

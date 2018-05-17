@@ -1,0 +1,15 @@
+FROM python:3.6-alpine
+
+RUN apk add --no-cache --update \
+    python-dev \
+    build-base
+
+RUN apk add --virtual build-deps gcc python-dev musl-dev && \
+    apk add --no-cache --update postgresql-dev
+
+WORKDIR /code
+ADD ./setup.py /code/setup.py
+
+RUN pip3 install -e .
+
+ADD . /code

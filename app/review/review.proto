@@ -1,0 +1,49 @@
+// review/review.proto
+
+syntax = "proto3";
+
+package review;
+
+// import "google/protobuf/wrappers/wrapper.proto";
+import "google/protobuf/wrappers.proto";
+
+
+// The review service definition.
+service ReviewService {
+  // Create a review
+  rpc CreateReview (ReviewSchema) returns (ReviewSchema) {}
+  // Get a review by id
+  rpc GetReview (ReviewQuery) returns (ReviewSchema) {}
+  // Update a review by id
+  rpc UpdateReview (ReviewQuery) returns (ReviewSchema) {}
+  // Delete a review by id
+  rpc DeleteReview (ReviewQuery) returns (google.protobuf.StringValue) {}
+  // GetReviews gets a list of reviews by start and count
+  rpc GetReviews (ReviewsQuery) returns (ReviewsResponse) {}
+}
+
+// ReviewQuery
+message ReviewQuery {
+  int32 id = 1;
+  ReviewSchema review = 2;
+}
+
+// The review interface schema
+message ReviewSchema {
+  int32 id = 1;
+  int32 rating = 2;
+  string review = 3;
+  int32 customer_id = 4;
+  int32 product_id = 5;
+}
+
+// ReviewsQuery describes a Query to get count reviews starting at id start
+message ReviewsQuery {
+  int32 count = 1;
+  int32 start = 2;
+}
+
+// ReviewsResponse is a list of reviews
+message ReviewsResponse {
+  repeated ReviewSchema reviews = 1;
+}

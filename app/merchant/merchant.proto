@@ -1,0 +1,46 @@
+// merchant/merchant.proto
+
+syntax = "proto3";
+
+package merchant;
+
+// import "google/protobuf/wrappers/wrapper.proto";
+import "google/protobuf/wrappers.proto";
+
+
+// The merchant service definition.
+service MerchantService {
+  // Create a merchant
+  rpc CreateMerchant (MerchantSchema) returns (MerchantSchema) {}
+  // Get a merchant by id
+  rpc GetMerchant (MerchantQuery) returns (MerchantSchema) {}
+  // Update a merchant by id
+  rpc UpdateMerchant (MerchantQuery) returns (MerchantSchema) {}
+  // Delete a merchant by id
+  rpc DeleteMerchant (MerchantQuery) returns (google.protobuf.StringValue) {}
+  // GetMerchants gets a list of merchants by start and count
+  rpc GetMerchants (MerchantsQuery) returns (MerchantsResponse) {}
+}
+
+// MerchantQuery
+message MerchantQuery {
+  int32 id = 1;
+  MerchantSchema merchant = 2;
+}
+
+// The merchant interface schema
+message MerchantSchema {
+  int32 id = 1;
+  string name = 2;
+}
+
+// MerchantsQuery describes a request to get count merchants starting at id start
+message MerchantsQuery {
+  int32 count = 1;
+  int32 start = 2;
+}
+
+// MerchantsResponse is a list of merchants
+message MerchantsResponse {
+  repeated MerchantSchema merchants = 1;
+}

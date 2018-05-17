@@ -1,0 +1,47 @@
+// customer/customer.proto
+
+syntax = "proto3";
+
+package customer;
+
+// import "google/protobuf/wrappers/wrapper.proto";
+import "google/protobuf/wrappers.proto";
+
+
+// The customer service definition.
+service CustomerService {
+  // Create a customer
+  rpc CreateCustomer (CustomerSchema) returns (CustomerSchema) {}
+  // Get a customer by id
+  rpc GetCustomer (CustomerQuery) returns (CustomerSchema) {}
+  // Update a customer by id
+  rpc UpdateCustomer (CustomerQuery) returns (CustomerSchema) {}
+  // Delete a customer by id
+  rpc DeleteCustomer (CustomerQuery) returns (google.protobuf.StringValue) {}
+  // GetCustomers gets a list of customers by start and count
+  rpc GetCustomers (CustomersQuery) returns (CustomersResponse) {}
+}
+
+// CustomerQuery
+message CustomerQuery {
+  int32 id = 1;
+  CustomerSchema customer = 2;
+}
+
+// The customer interface schema
+message CustomerSchema {
+  int32 id = 1;
+  string first_name = 2;
+  string last_name = 3;
+}
+
+// CustomersQuery describes a request to get count customers starting at id start
+message CustomersQuery {
+  int32 count = 1;
+  int32 start = 2;
+}
+
+// CustomersResponse is a list of customers
+message CustomersResponse {
+  repeated CustomerSchema customers = 1;
+}
