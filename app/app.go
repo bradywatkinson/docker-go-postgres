@@ -14,11 +14,15 @@ import (
   _ "github.com/lib/pq"
 )
 
+// App serves as the structure to hold the state of the app
 type App struct {
   Router *mux.Router
   DB     *sql.DB
 }
 
+// Initialize setups all the main operating components off app;
+// this includes creating a new database connection and setting
+// up the router and registering routes.
 func (a *App) Initialize(connectionString string) {
 
   var err error
@@ -31,6 +35,7 @@ func (a *App) Initialize(connectionString string) {
   a.initializeRoutes()
 }
 
+// Run starts serving the app on port the port specified in addr
 func (a *App) Run(addr string) {
   http.Handle("/", a.Router)
   log.Fatal(http.ListenAndServe(addr, nil))

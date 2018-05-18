@@ -22,7 +22,7 @@ services:
     build:
       context: .
       dockerfile: ./Dockerfile
-    command: go test -v
+    command: sh -c "golint && go test -v"
     environment:
       - APP_DB_USERNAME=dev
       - APP_DB_PASSWORD=dev
