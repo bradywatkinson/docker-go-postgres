@@ -3,7 +3,7 @@ services:
   localdev:
     build:
       context: .
-      dockerfile: ./Dockerfile
+      dockerfile: ./Dockerfile.localdev
     command: go run main.go app.go model.go
     environment:
       - APP_DB_USERNAME=dev
@@ -21,7 +21,7 @@ services:
   test:
     build:
       context: .
-      dockerfile: ./Dockerfile
+      dockerfile: ./Dockerfile.localdev
     command: sh -c "golint && go test -v"
     environment:
       - APP_DB_USERNAME=dev
