@@ -4,7 +4,7 @@ services:
     build:
       context: .
       dockerfile: ./Dockerfile.localdev
-    command: go run main.go app.go model.go
+    command: go run main.go app.go models
     environment:
       - APP_DB_USERNAME=dev
       - APP_DB_PASSWORD=dev
