@@ -5,3 +5,9 @@ class Product(Base, CommittedTimestampMixin):
     id = db.Column(db.Integer(), primary_key=True)
     name = db.Column(db.UnicodeText(), nullable=False)
     price = db.Column(db.Numeric(30, 16), nullable=False)
+
+    vendor_id = db.Column(
+        db.Integer(),
+        db.ForeignKey('vendor.id'),
+        nullable=False,
+    )
