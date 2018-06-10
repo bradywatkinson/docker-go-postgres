@@ -33,10 +33,35 @@ services:
       - ./app/:/go/src/app
       - /go/src/app/vendor
 
+  manage_db:
+    build:
+      context: .
+      dockerfile: ./Dockerfile.manage_db
+    command: upgrade
+    entrypoint: python3 manage.py db
+    environment:
+      - REALM=localdev
+      - PYTHONUNBUFFERED=true
+    links:
+      - postgres
+    volumes:
+      - ./db:/code
+
+  lint:
+    build:
+      context: .
+      dockerfile: ./Dockerfile.manage_db
+    entrypoint: flake8
+    volumes:
+      - ./db/:/code
+    environment:
+      - REALM=test
+      - PYTHONUNBUFFERED=true
+
   postgres:
     build:
       context: .
-      dockerfile: ./Dockerfile.db
+      dockerfile: ./Dockerfile.postgres
     environment:
       - POSTGRES_USER=dev
       - POSTGRES_PASSWORD=dev
