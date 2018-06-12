@@ -4,7 +4,7 @@ services:
     build:
       context: .
       dockerfile: ./Dockerfile.localdev
-    command: go run main.go app.go models
+    command: go run main.go common v1 models
     environment:
       - APP_DB_USERNAME=dev
       - APP_DB_PASSWORD=dev
@@ -22,7 +22,7 @@ services:
     build:
       context: .
       dockerfile: ./Dockerfile.localdev
-    command: sh -c "golint && go test -v"
+    command: sh -c "golint ./... && go test ./... -v"
     environment:
       - APP_DB_USERNAME=dev
       - APP_DB_PASSWORD=dev
