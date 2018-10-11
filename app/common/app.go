@@ -6,6 +6,7 @@ import (
   "database/sql"
 
   "github.com/gorilla/mux"
+  "google.golang.org/grpc"
 )
 
 
@@ -13,4 +14,5 @@ import (
 type App struct {
   Router *mux.Router
   DB     *sql.DB
+  GRPC   *grpc.Server
 }

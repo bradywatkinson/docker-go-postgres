@@ -1,0 +1,22 @@
+# FROM https://github.com/ReturnPath/grpc_cli
+FROM buildpack-deps:jessie-scm
+
+RUN apt-get update
+RUN apt-get install -y \
+      g++ gcc libc6-dev make unzip build-essential autoconf automake libtool libgflags-dev \
+      --no-install-recommends
+
+WORKDIR /root
+
+RUN pwd
+RUN git clone https://github.com/grpc/grpc.git && \
+      cd /root/grpc && \
+      git submodule update --init
+
+RUN cd /root/grpc && make grpc_cli && cp ./bins/opt/grpc_cli /usr/bin/
+
+COPY app/certs .
+RUN cp server.crt /usr/local/share/ca-certificates/ && \
+  update-ca-certificates
+
+ENTRYPOINT ["/usr/bin/grpc_cli"]

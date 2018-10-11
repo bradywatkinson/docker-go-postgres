@@ -4,16 +4,18 @@ services:
     build:
       context: .
       dockerfile: ./Dockerfile.localdev
-    command: go run main.go common v1 models
+    command: go run main.go
     environment:
       - APP_DB_USERNAME=dev
       - APP_DB_PASSWORD=dev
       - APP_DB_NAME=dev
+      - PORT=8080
     links:
       - postgres
     volumes:
       - ./app/:/go/src/app
-      - /go/src/app/vendor
+      - "vendor:/go/src/app/vendor"
+      - "_tools:/go/src/app/_tools"
       - /go/src/app/build
     ports:
       - "8080:8080"
@@ -22,16 +24,19 @@ services:
     build:
       context: .
       dockerfile: ./Dockerfile.localdev
-    command: sh -c "golint ./... && go test ./... -v"
+    command: sh -c "retool do golint `go list ./... | grep -v /vendor/` && retool do go test ./... -v"
     environment:
       - APP_DB_USERNAME=dev
       - APP_DB_PASSWORD=dev
       - APP_DB_NAME=test
+      - PORT=8080
     links:
       - postgres
     volumes:
       - ./app/:/go/src/app
-      - /go/src/app/vendor
+      - "vendor:/go/src/app/vendor"
+      - "_tools:/go/src/app/_tools"
+      - /go/src/app/build
 
   manage_db:
     build:
@@ -69,5 +74,16 @@ services:
     volumes:
       - "postgres:/var/lib/postgresql/data"
 
+  protoc:
+    build:
+      context: .
+      dockerfile: ./Dockerfile.protoc
+    entrypoint: protoc --go_out=plugins=grpc:.
+    volumes:
+      - ./app/:/go/src/app
+      - /go/src/app/build
+
 volumes:
   postgres:
+  vendor:
+  _tools:
