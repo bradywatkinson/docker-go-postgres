@@ -8,10 +8,10 @@ RUN apk add --virtual build-deps gcc python-dev musl-dev && \
     apk add --no-cache --update postgresql-dev
 
 WORKDIR /code
-ADD ./db/setup.py /code/setup.py
+ADD ./setup.py /code/setup.py
 
 RUN pip3 install -e .
 
-ADD ./db /code
+ADD . /code
 
 ENV REALM prod

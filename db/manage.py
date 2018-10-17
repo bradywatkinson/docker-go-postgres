@@ -11,7 +11,7 @@ from alembic import command
 from schema import db
 
 app = Flask(__name__)
-app.config['SQLALCHEMY_DATABASE_URI'] = 'postgresql://dev:dev@postgres/dev'
+app.config['SQLALCHEMY_DATABASE_URI'] = 'postgresql://dev:dev@db/dev'
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 
 db.init_app(app)

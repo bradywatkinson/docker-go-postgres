@@ -30,7 +30,8 @@ func main() {
 
   a := common.App{}
   connectionString :=
-    fmt.Sprintf("sslmode=disable host=postgres user=%s password=%s dbname=%s",
+    fmt.Sprintf("sslmode=disable host=%s user=%s password=%s dbname=%s",
+      os.Getenv("APP_DB_HOST"),
       os.Getenv("APP_DB_USERNAME"),
       os.Getenv("APP_DB_PASSWORD"),
       os.Getenv("APP_DB_NAME"))

@@ -78,6 +78,6 @@ Prepend `retool do` to use tools installed by retool:
 
 ## Testing
 
-    $ docker-compose run grpc_cli ls localdev:8080 -l --channel_creds_type=ssl --ssl_target=localhost
+    $ docker-compose run grpc_cli ls app:8080 -l --channel_creds_type=ssl --ssl_target=localhost
 
     

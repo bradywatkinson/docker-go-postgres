@@ -15,11 +15,11 @@ RUN go install
 WORKDIR /go/src/app
 
 # ensure dependencies are up to date
-COPY ./app/Gopkg.toml ./app/Gopkg.lock ./
+COPY ./Gopkg.toml ./Gopkg.lock ./
 RUN dep ensure -vendor-only
 
 # ensure tools are up to date
-COPY ./app/tools.json ./
+COPY ./tools.json ./
 RUN retool sync
 
-COPY ./app /go/src/app
+COPY . .

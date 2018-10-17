@@ -1,87 +1,95 @@
-version: '2'
+version: '3'
 services:
-  localdev:
+  app:
     build:
-      context: .
-      dockerfile: ./Dockerfile.localdev
+      context: ./app
+      dockerfile: Dockerfile.app
     command: go run main.go
     environment:
+      - APP_DB_HOST=db
       - APP_DB_USERNAME=dev
       - APP_DB_PASSWORD=dev
       - APP_DB_NAME=dev
       - PORT=8080
     links:
-      - postgres
+      - db
     volumes:
-      - ./app/:/go/src/app
+      - ./app:/go/src/app
       - "vendor:/go/src/app/vendor"
       - "_tools:/go/src/app/_tools"
       - /go/src/app/build
     ports:
       - "8080:8080"
 
-  test:
+  app_test:
     build:
-      context: .
-      dockerfile: ./Dockerfile.localdev
+      context: ./app
+      dockerfile: Dockerfile.app
     command: sh -c "retool do golint `go list ./... | grep -v /vendor/` && retool do go test ./... -v"
     environment:
+      - APP_DB_HOST=db
       - APP_DB_USERNAME=dev
       - APP_DB_PASSWORD=dev
       - APP_DB_NAME=test
       - PORT=8080
     links:
-      - postgres
+      - db
     volumes:
-      - ./app/:/go/src/app
+      - ./app:/go/src/app
       - "vendor:/go/src/app/vendor"
       - "_tools:/go/src/app/_tools"
       - /go/src/app/build
 
-  manage_db:
+  protoc:
     build:
-      context: .
-      dockerfile: ./Dockerfile.manage_db
+      context: ./app
+      dockerfile: Dockerfile.protoc
+    entrypoint: protoc --go_out=plugins=grpc:.
+    volumes:
+      - ./:/go/src/app
+      - /go/src/app/build
+
+  grpc_cli:
+    build:
+      context: ./app
+      dockerfile: Dockerfile.grpc_cli
+    entrypoint: /usr/bin/grpc_cli
+
+  alembic:
+    build:
+      context: ./db
+      dockerfile: Dockerfile.alembic
     command: upgrade
     entrypoint: python3 manage.py db
     environment:
-      - REALM=localdev
+      - REALM=app
       - PYTHONUNBUFFERED=true
     links:
-      - postgres
+      - db
     volumes:
       - ./db:/code
 
-  lint:
+  alembic_test:
     build:
-      context: .
-      dockerfile: ./Dockerfile.manage_db
+      context: ./db
+      dockerfile: Dockerfile.alembic
     entrypoint: flake8
     volumes:
-      - ./db/:/code
+      - ./db:/code
     environment:
       - REALM=test
       - PYTHONUNBUFFERED=true
 
-  postgres:
+  db:
     build:
-      context: .
-      dockerfile: ./Dockerfile.postgres
+      context: ./db
+      dockerfile: Dockerfile.postgres
     environment:
       - POSTGRES_USER=dev
       - POSTGRES_PASSWORD=dev
       - POSTGRES_DB=dev
     volumes:
       - "postgres:/var/lib/postgresql/data"
-
-  protoc:
-    build:
-      context: .
-      dockerfile: ./Dockerfile.protoc
-    entrypoint: protoc --go_out=plugins=grpc:.
-    volumes:
-      - ./app/:/go/src/app
-      - /go/src/app/build
 
 volumes:
   postgres:
