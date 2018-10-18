@@ -5,6 +5,12 @@
 - a RESTful HTTP1 JSON interface, and
 - a gRPC HTTP2 interface
 
+## Tools
+
+### [Reflex](https://github.com/cespare/reflex)
+
+`app` uses Reflex to auto-reload the webserver after changes to source are detected. 
+
 ## Managing Dependencies
 
 ### Application Dependencies
