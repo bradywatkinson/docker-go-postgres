@@ -16,6 +16,7 @@ services:
     volumes:
       - ./app:/go/src/app
       - "vendor:/go/src/app/vendor"
+      - "_tools:/go/src/app/_tools"
       - /go/src/app/build
     ports:
       - "8080:8080"
@@ -36,6 +37,7 @@ services:
     volumes:
       - ./app:/go/src/app
       - "vendor:/go/src/app/vendor"
+      - "_tools:/go/src/app/_tools"
       - /go/src/app/build
 
   protoc:

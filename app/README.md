@@ -76,6 +76,13 @@ Tool dependencies are managed using [Retool](https://github.com/twitchtv/retool)
 
 > `retool` helps manage the versions of tools that you use with your repository. These are executables that are a crucial part of your development environment, but aren't imported by any of your code, so they don't get scooped up by glide or godep (or any other vendoring tool).
 
+Currently, adding or upgrading a tool is an involved process. This is because I don't like having non-application source code in my application directory. This is currently achieved using docker named volumes which works pretty well, however, breaks down in some cases, such as for retool. The reason it breaks is the `add` and `upgrade` command both work by adding the commit of the tool to `tools.json` and `manifest.json` before running `sync`. Unfortunately, `sync` has a very scorched earth policy when it comes to version conflicts - it removes the whole `/_tools` directory and rebuilds from scratch. That would normally be fine, but by mounting the `/_tools` directory as a named volume in docker, results in a resource conflict.
+
+Presently, that means to add or upgrade a tool, you must remove the `_tools` named volume, run `add` or `upgrade`, rebuild the image, bring up the service, add the volume back and then delete all the code in `/_tools`. To fix this, I intend to add 2 PR's to `retool`:
+
+1. Add a `-manifest-only` flag to `add` and `upgrade` command that only works out the commit and updates `tools.json` and `manifest.json`. This will enable the workflow of simply running `add` or `upgrade` with `-manifest-only` and rebuilding the image.
+2. Change how `sync` works to not delete `/_tools`, or if that is not preferable, a `-no-delete` flag to optionally not delete `/_tools`. This will enable the workflow of simply executing `add` or `upgrade` with `-no-delete` to start using a tool immediately.
+
 #### Usage
 
 ```
