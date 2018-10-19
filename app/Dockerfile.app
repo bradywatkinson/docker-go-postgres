@@ -21,5 +21,3 @@ RUN dep ensure -vendor-only
 # ensure tools are up to date
 COPY ./tools.json ./
 RUN retool sync
-
-COPY . .

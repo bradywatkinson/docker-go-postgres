@@ -27,7 +27,7 @@ func postCustomer(a *common.App) func(http.ResponseWriter, *http.Request) {
     }
     defer r.Body.Close()
 
-    c.Model = &CustomerModel{c.Schema.Id, c.Schema.FirstName, c.Schema.LastName}
+    c.copySchema()
 
     if err := c.Model.createCustomer(a.DB); err != nil {
       common.RespondWithError(w, http.StatusInternalServerError, err.Error())
@@ -62,7 +62,7 @@ func getCustomer(a *common.App) func(http.ResponseWriter, *http.Request) {
       return
     }
 
-    c.Schema.Id = c.Model.ID
+    c.copyModel()
 
     common.RespondWithJSON(w, http.StatusOK, c.Schema)
   }
@@ -154,6 +154,6 @@ func getCustomers(a *common.App) func(http.ResponseWriter, *http.Request) {
       return
     }
 
-    common.RespondWithJSON(w, http.StatusOK, &[]CustomerSchema{&customers})
+    common.RespondWithJSON(w, http.StatusOK, customers)
   }
 }

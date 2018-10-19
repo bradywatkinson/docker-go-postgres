@@ -9,7 +9,7 @@ import (
 
 // The database model for a customer
 type CustomerModel struct {
-  ID        int32
+  ID        int
   FirstName string
   LastName  string
 }

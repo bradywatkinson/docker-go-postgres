@@ -14,11 +14,11 @@ type Customer struct {
 }
 
 func (schema *CustomerSchema) ID(id int) {
-  schema.Id = id
+  schema.Id = int32(id)
 }
 
 func (model *CustomerModel) Id(id int32) {
-  model.ID = id
+  model.ID = int(id)
 }
 
 func (c *Customer) copySchema() error {
@@ -31,6 +31,7 @@ func (c *Customer) copySchema() error {
   }
 
   copier.Copy(c.Schema, c.Model)
+  return nil
 }
 
 func (c *Customer) copyModel() error {
@@ -43,4 +44,5 @@ func (c *Customer) copyModel() error {
   }
 
   copier.Copy(c.Model, c.Schema)
+  return nil
 }
