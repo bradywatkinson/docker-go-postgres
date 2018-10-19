@@ -28,6 +28,12 @@
 
 [[projects]]
   branch = "master"
+  name = "github.com/jinzhu/copier"
+  packages = ["."]
+  revision = "7e38e58719c33e0d44d585c4ab477a30f8cb82dd"
+
+[[projects]]
+  branch = "master"
   name = "github.com/lib/pq"
   packages = [
     ".",
@@ -113,6 +119,6 @@
 [solve-meta]
   analyzer-name = "dep"
   analyzer-version = 1
-  inputs-digest = "8f9936a34662751f7e94361facc77ea11944e792a5f0b9298eab21b2560180d7"
+  inputs-digest = "f234ae68704c5edc354ddc168e5fc2d8ff0bff866f49b2802754084ab052c807"
   solver-name = "gps-cdcl"
   solver-version = 1

@@ -46,7 +46,9 @@ services:
       dockerfile: Dockerfile.protoc
     entrypoint: protoc --go_out=plugins=grpc:.
     volumes:
-      - ./:/go/src/app
+      - ./app:/go/src/app
+      - "vendor:/go/src/app/vendor"
+      - "_tools:/go/src/app/_tools"
       - /go/src/app/build
 
   grpc_cli:

@@ -1,4 +1,4 @@
-// customer/service.go
+// customer/rest.go
 
 package customer
 
@@ -14,23 +14,29 @@ import (
   "app/common"
 )
 
-
-func createCustomer(a *common.App) func(http.ResponseWriter, *http.Request) {
+func postCustomer(a *common.App) func(http.ResponseWriter, *http.Request) {
   return func(w http.ResponseWriter, r *http.Request) {
-    var c customer
+    c := Customer{
+      Schema: &CustomerSchema{},
+      Model: nil,
+    }
     decoder := json.NewDecoder(r.Body)
-    if err := decoder.Decode(&c); err != nil {
+    if err := decoder.Decode(c.Schema); err != nil {
       common.RespondWithError(w, http.StatusBadRequest, fmt.Sprintf("Invalid request payload: %s", err))
       return
     }
     defer r.Body.Close()
 
-    if err := c.createCustomer(a.DB); err != nil {
+    c.Model = &CustomerModel{c.Schema.Id, c.Schema.FirstName, c.Schema.LastName}
+
+    if err := c.Model.createCustomer(a.DB); err != nil {
       common.RespondWithError(w, http.StatusInternalServerError, err.Error())
       return
     }
 
-    common.RespondWithJSON(w, http.StatusCreated, c)
+    c.copyModel()
+
+    common.RespondWithJSON(w, http.StatusCreated, c.Schema)
   }
 }
 
@@ -42,8 +48,11 @@ func getCustomer(a *common.App) func(http.ResponseWriter, *http.Request) {
       common.RespondWithError(w, http.StatusBadRequest, "Invalid Customer ID")
     }
 
-    c := customer{ID: id}
-    if err := c.getCustomer(a.DB); err != nil {
+    c := Customer{
+      Model: &CustomerModel{ID: id},
+      Schema: &CustomerSchema{},
+    }
+    if err := c.Model.readCustomer(a.DB); err != nil {
       switch err {
       case sql.ErrNoRows:
         common.RespondWithError(w, http.StatusNotFound, "Customer not found")
@@ -53,11 +62,13 @@ func getCustomer(a *common.App) func(http.ResponseWriter, *http.Request) {
       return
     }
 
-    common.RespondWithJSON(w, http.StatusOK, c)
+    c.Schema.Id = c.Model.ID
+
+    common.RespondWithJSON(w, http.StatusOK, c.Schema)
   }
 }
 
-func updateCustomer(a *common.App) func(http.ResponseWriter, *http.Request) {
+func putCustomer(a *common.App) func(http.ResponseWriter, *http.Request) {
   return func(w http.ResponseWriter, r *http.Request) {
     vars := mux.Vars(r)
     id, err := strconv.Atoi(vars["id"])
@@ -66,8 +77,12 @@ func updateCustomer(a *common.App) func(http.ResponseWriter, *http.Request) {
       return
     }
 
-    c := customer{ID: id}
-    if err := c.getCustomer(a.DB); err != nil {
+    c := Customer{
+      Model: &CustomerModel{ID: id},
+      Schema: nil,
+    }
+
+    if err := c.Model.readCustomer(a.DB); err != nil {
       switch err {
       case sql.ErrNoRows:
         common.RespondWithError(w, http.StatusNotFound, "Customer not found")
@@ -77,19 +92,25 @@ func updateCustomer(a *common.App) func(http.ResponseWriter, *http.Request) {
       return
     }
 
+    c.Schema = &CustomerSchema{}
+
     decoder := json.NewDecoder(r.Body)
-    if err := decoder.Decode(&c); err != nil {
+    if err := decoder.Decode(&c.Schema); err != nil {
       common.RespondWithError(w, http.StatusBadRequest, "Invalid resquest payload")
       return
     }
     defer r.Body.Close()
 
-    if err := c.updateCustomer(a.DB); err != nil {
+    c.copySchema()
+
+    if err := c.Model.updateCustomer(a.DB); err != nil {
       common.RespondWithError(w, http.StatusInternalServerError, err.Error())
       return
     }
 
-    common.RespondWithJSON(w, http.StatusOK, c)
+    c.copyModel()
+
+    common.RespondWithJSON(w, http.StatusOK, c.Schema)
   }
 }
 
@@ -102,8 +123,11 @@ func deleteCustomer(a *common.App) func(http.ResponseWriter, *http.Request) {
       return
     }
 
-    c := customer{ID: id}
-    if err := c.deleteCustomer(a.DB); err != nil {
+    c := Customer{
+      Model: &CustomerModel{ID: id},
+      Schema: nil,
+    }
+    if err := c.Model.deleteCustomer(a.DB); err != nil {
       common.RespondWithError(w, http.StatusInternalServerError, err.Error())
       return
     }
@@ -124,13 +148,12 @@ func getCustomers(a *common.App) func(http.ResponseWriter, *http.Request) {
       start = 0
     }
 
-    var c customer
-    customers, err := c.getCustomers(a.DB, start, count)
+    customers, err := readCustomers(a.DB, start, count)
     if err != nil {
       common.RespondWithError(w, http.StatusInternalServerError, err.Error())
       return
     }
 
-    common.RespondWithJSON(w, http.StatusOK, customers)
+    common.RespondWithJSON(w, http.StatusOK, &[]CustomerSchema{&customers})
   }
 }

@@ -39,7 +39,7 @@ func main() {
 
   // register HTTP handlers
   a.InitializeRouter()
-  customer.InitializeRoutes(&a)
+  customer.InitializeREST(&a)
   merchant.InitializeRoutes(&a)
   product.InitializeRoutes(&a)
   review.InitializeRoutes(&a)
@@ -47,6 +47,7 @@ func main() {
 
   // register GRPC handlers
   a.InitializeGRPC(certPool, addr)
+  customer.InitializeGRPC(&a)
   greeter.InitializeService(&a)
   reflection.Register(a.GRPC)
 

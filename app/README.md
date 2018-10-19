@@ -22,7 +22,7 @@ GDS uses SSL/TLS for all network requests. This may seem unnecessary for an inte
 
 Generate self signed certificates:
 
-    openssl req -newkey rsa:2048 -nodes -keyout server.key -x509 -days 365 -out server.crt
+    $ openssl req -newkey rsa:2048 -nodes -keyout server.key -x509 -days 365 -out server.crt
 
 ## Tools
 
@@ -103,12 +103,12 @@ version will print the installed version of retool
 
 Add a tool:
 
-    retool add github.com/jteeuwen/go-bindata/go-bindata origin/master
+    $ retool add github.com/jteeuwen/go-bindata/go-bindata origin/master
                ^ tool                                    ^ commit
 
 Prepend `retool do` to use tools installed by retool:
 
-    retool do go-bindata -pkg testdata -o ./testdata/testdata.go ./testdata/data.json
+    $ retool do go-bindata -pkg testdata -o ./testdata/testdata.go ./testdata/data.json
 
 ## Testing
 

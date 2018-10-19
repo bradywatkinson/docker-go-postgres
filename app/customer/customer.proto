@@ -1,0 +1,22 @@
+// customer/customer.proto
+
+syntax = "proto3";
+
+package customer;
+
+// The customer service definition.
+service CustomerService {
+  // Create a customer
+  rpc CreateCustomer (CustomerSchema) returns (CustomerSchema) {}
+  // Get a customer by id
+  rpc GetCustomer (CustomerSchema) returns (CustomerSchema) {}
+  // Update a customer by id
+  rpc UpdateCustomer (CustomerSchema) returns (CustomerSchema) {}
+}
+
+// The customer interface schema
+message CustomerSchema {
+  int32 id = 1;
+  string first_name = 2;
+  string last_name = 3;
+}
