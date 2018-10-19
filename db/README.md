@@ -1,10 +1,14 @@
-# Postgres DB with migrations managed by Flask-Migrate
+# Database Migrations Service (DMS)
 
-`db` is used to manage database migrations. It utilises the wonderful `Flask-Migrate` to generate alembic migrations which in turn generate SQL that can be executed on your database server.
+A simple database migration utility using `Flask-Migrate`.
 
-## Usage
+## Overview
+
+DMS is used to manage database migrations. It utilises the wonderful [`Flask-Migrate`](https://github.com/miguelgrinberg/Flask-Migrate) to generate an [`Alembic`](https://github.com/zzzeek/alembic) _migration script_ which in turn can be used to generate the SQL for a _migration_.
 
 A _migration_ is a set of database transformations which is described in a _migration script_. `Flask-Migrate` can generate a _migration script_ from changes to the set of `SQLAlchemy` models that describes a database. A migration is reference by it's revision id.
+
+## Usage
 
 Create a migration:
 

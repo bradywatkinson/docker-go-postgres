@@ -1,15 +1,34 @@
-# Golang Database Service
+# Golang Database Service (GDS)
 
-`app` is a golang server designed to act as a thin layer between other services and a database. The service implements two network interfaces;
+A simple golang service to relay access to a database.
+
+## Overview
+
+GDS is a golang webserver designed to act as a thin layer between other services and a database. The service implements two network interfaces;
 
 - a RESTful HTTP1 JSON interface, and
 - a gRPC HTTP2 interface
+
+## Connecting
+
+### SSL/TLS
+
+> gRPC has SSL/TLS integration and promotes the use of SSL/TLS to authenticate the server, and to encrypt all the data exchanged between the client and the server.
+
+GDS uses SSL/TLS for all network requests. This may seem unnecessary for an internally facing service, however I chose to do this for a few main reasons:
+
+- The purpose of GDS as a boilerplate is to implement best practices and allow the developer to make choices suited to their particular situation, and
+- gRPC and HTTP on the same socket using gRPC's built in `ServeHTTP` method requires HTTP2 which requires the connection to arrive over SSL/TLS
+
+Generate self signed certificates:
+
+    openssl req -newkey rsa:2048 -nodes -keyout server.key -x509 -days 365 -out server.crt
 
 ## Tools
 
 ### [Reflex](https://github.com/cespare/reflex)
 
-`app` uses Reflex to auto-reload the webserver after changes to source are detected. 
+GDS uses Reflex to auto-reload the webserver after changes to source are detected. 
 
 ## Managing Dependencies
 
@@ -18,6 +37,8 @@
 Application dependencies are managed using [Dep](https://github.com/golang/dep).
 
 > `dep` was the "official experiment." The Go toolchain, as of 1.11, has (experimentally) adopted an approach that sharply diverges from dep. As a result, we are continuing development of dep, but gearing work primarily towards the development of an alternative prototype for versioning behavior in the toolchain.
+
+I am investigating (and fully intend to migrate to) go 1.11 modules, however, at this moment, it is a low priority.
 
 #### Usage
 
