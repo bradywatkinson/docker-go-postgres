@@ -11,6 +11,7 @@ services:
       - APP_DB_PASSWORD=dev
       - APP_DB_NAME=dev
       - PORT=8080
+      - REALM=localdev
     links:
       - db
     volumes:
@@ -32,6 +33,7 @@ services:
       - APP_DB_PASSWORD=dev
       - APP_DB_NAME=test
       - PORT=8080
+      - REALM=test
     links:
       - db
     volumes:
@@ -64,7 +66,6 @@ services:
     command: upgrade
     entrypoint: python3 manage.py db
     environment:
-      - REALM=app
       - PYTHONUNBUFFERED=true
     links:
       - db

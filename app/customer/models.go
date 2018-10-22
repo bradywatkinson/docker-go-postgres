@@ -7,7 +7,8 @@ import (
 )
 
 
-// The database model for a customer
+// CustomerModel is used to load/dump from the
+// database customer table
 type CustomerModel struct {
   ID        int
   FirstName string
@@ -47,7 +48,7 @@ func (c *CustomerModel) deleteCustomer(db *sql.DB) error {
 
 func readCustomers(db *sql.DB, start, count int) ([]CustomerModel, error) {
   rows, err := db.Query(
-    "SELECT id, first_name, last_name FROM customer LIMIT $1 OFFSET $2",
+    "SELECT id, first_name, last_name FROM customer ORDER BY id LIMIT $1 OFFSET $2",
     count, start)
 
   if err != nil {

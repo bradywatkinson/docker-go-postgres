@@ -12,20 +12,22 @@ import (
   "github.com/gorilla/mux"
 
   "app/common"
+  "app/test_utils"
 )
 
 func postCustomer(a *common.App) func(http.ResponseWriter, *http.Request) {
   return func(w http.ResponseWriter, r *http.Request) {
-    c := Customer{
-      Schema: &CustomerSchema{},
-      Model: nil,
-    }
+    testutils.Log(fmt.Sprint("POST /customer:"))
+
+    c := Customer{}
     decoder := json.NewDecoder(r.Body)
-    if err := decoder.Decode(c.Schema); err != nil {
+    if err := decoder.Decode(&c.Schema); err != nil {
       common.RespondWithError(w, http.StatusBadRequest, fmt.Sprintf("Invalid request payload: %s", err))
       return
     }
     defer r.Body.Close()
+
+    testutils.Log(fmt.Sprintf("%#v", c.Schema))
 
     c.copySchema()
 
@@ -36,17 +38,21 @@ func postCustomer(a *common.App) func(http.ResponseWriter, *http.Request) {
 
     c.copyModel()
 
+    testutils.Log(fmt.Sprintf("Response:\n%#v", c.Schema))
     common.RespondWithJSON(w, http.StatusCreated, c.Schema)
   }
 }
 
 func getCustomer(a *common.App) func(http.ResponseWriter, *http.Request) {
   return func(w http.ResponseWriter, r *http.Request) {
+    testutils.Log(fmt.Sprint("GET /customer:"))
     vars := mux.Vars(r)
     id, err := strconv.Atoi(vars["id"])
     if err != nil {
       common.RespondWithError(w, http.StatusBadRequest, "Invalid Customer ID")
     }
+
+    testutils.Log(fmt.Sprintf("{ id: %d }", id))
 
     c := Customer{
       Model: &CustomerModel{ID: id},
@@ -64,12 +70,15 @@ func getCustomer(a *common.App) func(http.ResponseWriter, *http.Request) {
 
     c.copyModel()
 
+    testutils.Log(fmt.Sprintf("Response:\n%#v", c.Schema))
+
     common.RespondWithJSON(w, http.StatusOK, c.Schema)
   }
 }
 
 func putCustomer(a *common.App) func(http.ResponseWriter, *http.Request) {
   return func(w http.ResponseWriter, r *http.Request) {
+    testutils.Log(fmt.Sprint("PUT /customer"))
     vars := mux.Vars(r)
     id, err := strconv.Atoi(vars["id"])
     if err != nil {
@@ -92,14 +101,14 @@ func putCustomer(a *common.App) func(http.ResponseWriter, *http.Request) {
       return
     }
 
-    c.Schema = &CustomerSchema{}
-
     decoder := json.NewDecoder(r.Body)
     if err := decoder.Decode(&c.Schema); err != nil {
       common.RespondWithError(w, http.StatusBadRequest, "Invalid resquest payload")
       return
     }
     defer r.Body.Close()
+
+    testutils.Log(fmt.Sprintf("%#v", c.Schema))
 
     c.copySchema()
 
@@ -110,12 +119,15 @@ func putCustomer(a *common.App) func(http.ResponseWriter, *http.Request) {
 
     c.copyModel()
 
+    testutils.Log(fmt.Sprintf("Response:\n%#v", c.Schema))
+
     common.RespondWithJSON(w, http.StatusOK, c.Schema)
   }
 }
 
 func deleteCustomer(a *common.App) func(http.ResponseWriter, *http.Request) {
   return func(w http.ResponseWriter, r *http.Request) {
+    testutils.Log(fmt.Sprint("DELETE /customer"))
     vars := mux.Vars(r)
     id, err := strconv.Atoi(vars["id"])
     if err != nil {
@@ -131,6 +143,9 @@ func deleteCustomer(a *common.App) func(http.ResponseWriter, *http.Request) {
       common.RespondWithError(w, http.StatusInternalServerError, err.Error())
       return
     }
+    testutils.Log(fmt.Sprintf("{ id: %d }", id))
+
+    testutils.Log(fmt.Sprint("Response:\n{ result: \"success\""))
 
     common.RespondWithJSON(w, http.StatusOK, map[string]string{"result": "success"})
   }
@@ -138,6 +153,7 @@ func deleteCustomer(a *common.App) func(http.ResponseWriter, *http.Request) {
 
 func getCustomers(a *common.App) func(http.ResponseWriter, *http.Request) {
   return func(w http.ResponseWriter, r *http.Request) {
+    testutils.Log(fmt.Sprint("GET /customers"))
     count, _ := strconv.Atoi(r.FormValue("count"))
     start, _ := strconv.Atoi(r.FormValue("start"))
 
@@ -148,11 +164,15 @@ func getCustomers(a *common.App) func(http.ResponseWriter, *http.Request) {
       start = 0
     }
 
+    testutils.Log(fmt.Sprintf("{ count: %d, start: %d }", count, start))
+
     customers, err := readCustomers(a.DB, start, count)
     if err != nil {
       common.RespondWithError(w, http.StatusInternalServerError, err.Error())
       return
     }
+
+    testutils.Log(fmt.Sprintf("Response:\n%#v", customers))
 
     common.RespondWithJSON(w, http.StatusOK, customers)
   }

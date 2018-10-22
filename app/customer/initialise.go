@@ -19,5 +19,7 @@ func InitializeREST(a *common.App) {
 
 // InitializeGRPC registers the CustomerService
 func InitializeGRPC(a *common.App) {
-  RegisterCustomerServiceServer(a.GRPC, &CustomerServiceInterface{})
+  RegisterCustomerServiceServer(a.GRPC, &CustomerServiceInterface{
+    app: a,
+  })
 }
