@@ -1,4 +1,4 @@
-// product/service.go
+// product/rest.go
 
 package product
 
@@ -12,38 +12,53 @@ import (
   "github.com/gorilla/mux"
 
   "app/common"
+  "app/test_utils"
 )
 
-
-func createProduct(a *common.App) func(http.ResponseWriter, *http.Request) {
+func postProduct(a *common.App) func(http.ResponseWriter, *http.Request) {
   return func(w http.ResponseWriter, r *http.Request) {
-    var p product
+    testutils.Log(fmt.Sprint("POST /product:"))
+
+    c := Product{}
     decoder := json.NewDecoder(r.Body)
-    if err := decoder.Decode(&p); err != nil {
+    if err := decoder.Decode(&c.Schema); err != nil {
       common.RespondWithError(w, http.StatusBadRequest, fmt.Sprintf("Invalid request payload: %s", err))
       return
     }
     defer r.Body.Close()
 
-    if err := p.createProduct(a.DB); err != nil {
+    testutils.Log(fmt.Sprintf("%#v", c.Schema))
+
+    c.copySchema()
+
+    if err := c.Model.createProduct(a.DB); err != nil {
       common.RespondWithError(w, http.StatusInternalServerError, err.Error())
       return
     }
 
-    common.RespondWithJSON(w, http.StatusCreated, p)
+    c.copyModel()
+
+    testutils.Log(fmt.Sprintf("Response:\n%#v", c.Schema))
+    common.RespondWithJSON(w, http.StatusCreated, c.Schema)
   }
 }
 
 func getProduct(a *common.App) func(http.ResponseWriter, *http.Request) {
   return func(w http.ResponseWriter, r *http.Request) {
+    testutils.Log(fmt.Sprint("GET /product:"))
     vars := mux.Vars(r)
     id, err := strconv.Atoi(vars["id"])
     if err != nil {
-      common.RespondWithError(w, http.StatusBadRequest, "Invalid product ID")
+      common.RespondWithError(w, http.StatusBadRequest, "Invalid Product ID")
     }
 
-    p := product{ID: id}
-    if err := p.getProduct(a.DB); err != nil {
+    testutils.Log(fmt.Sprintf("{ id: %d }", id))
+
+    c := Product{
+      Model: &ProductModel{ID: id},
+      Schema: &ProductSchema{},
+    }
+    if err := c.Model.readProduct(a.DB); err != nil {
       switch err {
       case sql.ErrNoRows:
         common.RespondWithError(w, http.StatusNotFound, "Product not found")
@@ -53,39 +68,17 @@ func getProduct(a *common.App) func(http.ResponseWriter, *http.Request) {
       return
     }
 
-    common.RespondWithJSON(w, http.StatusOK, p)
+    c.copyModel()
+
+    testutils.Log(fmt.Sprintf("Response:\n%#v", c.Schema))
+
+    common.RespondWithJSON(w, http.StatusOK, c.Schema)
   }
 }
 
-func updateProduct(a *common.App) func(http.ResponseWriter, *http.Request) {
+func putProduct(a *common.App) func(http.ResponseWriter, *http.Request) {
   return func(w http.ResponseWriter, r *http.Request) {
-    vars := mux.Vars(r)
-    id, err := strconv.Atoi(vars["id"])
-    if err != nil {
-      common.RespondWithError(w, http.StatusBadRequest, "Invalid product ID")
-      return
-    }
-
-    var p product
-    decoder := json.NewDecoder(r.Body)
-    if err := decoder.Decode(&p); err != nil {
-      common.RespondWithError(w, http.StatusBadRequest, "Invalid resquest payload")
-      return
-    }
-    defer r.Body.Close()
-    p.ID = id
-
-    if err := p.updateProduct(a.DB); err != nil {
-      common.RespondWithError(w, http.StatusInternalServerError, err.Error())
-      return
-    }
-
-    common.RespondWithJSON(w, http.StatusOK, p)
-  }
-}
-
-func deleteProduct(a *common.App) func(http.ResponseWriter, *http.Request) {
-  return func(w http.ResponseWriter, r *http.Request) {
+    testutils.Log(fmt.Sprint("PUT /product"))
     vars := mux.Vars(r)
     id, err := strconv.Atoi(vars["id"])
     if err != nil {
@@ -93,11 +86,65 @@ func deleteProduct(a *common.App) func(http.ResponseWriter, *http.Request) {
       return
     }
 
-    p := product{ID: id}
-    if err := p.deleteProduct(a.DB); err != nil {
+    c := Product{
+      Model: &ProductModel{ID: id},
+      Schema: nil,
+    }
+
+    if err := c.Model.readProduct(a.DB); err != nil {
+      switch err {
+      case sql.ErrNoRows:
+        common.RespondWithError(w, http.StatusNotFound, "Product not found")
+      default:
+        common.RespondWithError(w, http.StatusInternalServerError, err.Error())
+      }
+      return
+    }
+
+    decoder := json.NewDecoder(r.Body)
+    if err := decoder.Decode(&c.Schema); err != nil {
+      common.RespondWithError(w, http.StatusBadRequest, "Invalid resquest payload")
+      return
+    }
+    defer r.Body.Close()
+
+    c.copySchema()
+
+    if err := c.Model.updateProduct(a.DB); err != nil {
       common.RespondWithError(w, http.StatusInternalServerError, err.Error())
       return
     }
+
+    c.copyModel()
+
+    testutils.Log(fmt.Sprintf("Response:\n%#v", c.Schema))
+
+    common.RespondWithJSON(w, http.StatusOK, c.Schema)
+  }
+}
+
+func deleteProduct(a *common.App) func(http.ResponseWriter, *http.Request) {
+  return func(w http.ResponseWriter, r *http.Request) {
+    testutils.Log(fmt.Sprint("DELETE /product"))
+    vars := mux.Vars(r)
+    id, err := strconv.Atoi(vars["id"])
+    if err != nil {
+      common.RespondWithError(w, http.StatusBadRequest, "Invalid Product ID")
+      return
+    }
+
+    testutils.Log(fmt.Sprintf("{ id: %d }", id))
+
+    c := Product{
+      Model: &ProductModel{ID: id},
+      Schema: nil,
+    }
+    if err := c.Model.deleteProduct(a.DB); err != nil {
+      common.RespondWithError(w, http.StatusInternalServerError, err.Error())
+      return
+    }
+
+    testutils.Log(fmt.Sprint("Response:\n{ result: \"success\" }"))
 
     common.RespondWithJSON(w, http.StatusOK, map[string]string{"result": "success"})
   }
@@ -105,6 +152,7 @@ func deleteProduct(a *common.App) func(http.ResponseWriter, *http.Request) {
 
 func getProducts(a *common.App) func(http.ResponseWriter, *http.Request) {
   return func(w http.ResponseWriter, r *http.Request) {
+    testutils.Log(fmt.Sprint("GET /products"))
     count, _ := strconv.Atoi(r.FormValue("count"))
     start, _ := strconv.Atoi(r.FormValue("start"))
 
@@ -115,12 +163,15 @@ func getProducts(a *common.App) func(http.ResponseWriter, *http.Request) {
       start = 0
     }
 
-    var p product
-    products, err := p.getProducts(a.DB, start, count)
+    testutils.Log(fmt.Sprintf("{ count: %d, start: %d }", count, start))
+
+    products, err := readProducts(a.DB, start, count)
     if err != nil {
       common.RespondWithError(w, http.StatusInternalServerError, err.Error())
       return
     }
+
+    testutils.Log(fmt.Sprintf("Response:\n%#v", products))
 
     common.RespondWithJSON(w, http.StatusOK, products)
   }

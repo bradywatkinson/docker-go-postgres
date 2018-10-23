@@ -6,15 +6,14 @@ import (
   "database/sql"
 )
 
-
-type product struct {
-  ID         int     `json:"id"`
-  Name       string  `json:"name"`
-  Price      float64 `json:"price"`
-  MerchantID int     `json:"merchant_id"`
+type ProductModel struct {
+  ID         int
+  Name       string
+  Price      float64
+  MerchantID int
 }
 
-func (p *product) createProduct(db *sql.DB) error {
+func (p *ProductModel) createProduct(db *sql.DB) error {
   err := db.QueryRow(
     "INSERT INTO product(name, price, merchant_id) VALUES($1, $2, $3) RETURNING id",
     p.Name, p.Price, p.MerchantID).Scan(&p.ID)
@@ -26,12 +25,12 @@ func (p *product) createProduct(db *sql.DB) error {
   return nil
 }
 
-func (p *product) getProduct(db *sql.DB) error {
+func (p *ProductModel) readProduct(db *sql.DB) error {
   return db.QueryRow("SELECT name, price, merchant_id FROM product WHERE id=$1",
     p.ID).Scan(&p.Name, &p.Price, &p.MerchantID)
 }
 
-func (p *product) updateProduct(db *sql.DB) error {
+func (p *ProductModel) updateProduct(db *sql.DB) error {
   _, err :=
     db.Exec("UPDATE product SET name=$1, price=$2 WHERE id=$3",
       p.Name, p.Price, p.ID)
@@ -39,13 +38,13 @@ func (p *product) updateProduct(db *sql.DB) error {
   return err
 }
 
-func (p *product) deleteProduct(db *sql.DB) error {
+func (p *ProductModel) deleteProduct(db *sql.DB) error {
   _, err := db.Exec("DELETE FROM product WHERE id=$1", p.ID)
 
   return err
 }
 
-func (p *product) getProducts(db *sql.DB, start, count int) ([]product, error) {
+func readProducts(db *sql.DB, start, count int) ([]ProductModel, error) {
   rows, err := db.Query(
     "SELECT id, name, price, merchant_id FROM product LIMIT $1 OFFSET $2",
     count, start)
@@ -56,10 +55,10 @@ func (p *product) getProducts(db *sql.DB, start, count int) ([]product, error) {
 
   defer rows.Close()
 
-  products := []product{}
+  products := []ProductModel{}
 
   for rows.Next() {
-    var p product
+    var p ProductModel
     if err := rows.Scan(&p.ID, &p.Name, &p.Price, &p.MerchantID); err != nil {
       return nil, err
     }

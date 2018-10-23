@@ -40,14 +40,17 @@ func main() {
   // register HTTP handlers
   a.InitializeRouter()
   customer.InitializeREST(&a)
-  merchant.InitializeRoutes(&a)
-  product.InitializeRoutes(&a)
-  review.InitializeRoutes(&a)
+  merchant.InitializeREST(&a)
+  product.InitializeREST(&a)
+  review.InitializeREST(&a)
   http.Handle("/", handlers.RecoveryHandler()(a.Router))
 
   // register GRPC handlers
   a.InitializeGRPC(certPool, addr)
   customer.InitializeGRPC(&a)
+  merchant.InitializeGRPC(&a)
+  product.InitializeGRPC(&a)
+  review.InitializeGRPC(&a)
   reflection.Register(a.GRPC)
 
   srv := &http.Server{

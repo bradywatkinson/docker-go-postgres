@@ -7,12 +7,12 @@ import (
 )
 
 
-type merchant struct {
-  ID    int     `json:"id"`
-  Name  string  `json:"name"`
+type MerchantModel struct {
+  ID    int
+  Name  string
 }
 
-func (m *merchant) createMerchant(db *sql.DB) error {
+func (m *MerchantModel) createMerchant(db *sql.DB) error {
   err := db.QueryRow(
     "INSERT INTO merchant(name) VALUES($1) RETURNING id",
     m.Name).Scan(&m.ID)
@@ -24,12 +24,12 @@ func (m *merchant) createMerchant(db *sql.DB) error {
   return nil
 }
 
-func (m *merchant) getMerchant(db *sql.DB) error {
+func (m *MerchantModel) readMerchant(db *sql.DB) error {
   return db.QueryRow("SELECT name FROM merchant WHERE id=$1",
     m.ID).Scan(&m.Name)
 }
 
-func (m *merchant) updateMerchant(db *sql.DB) error {
+func (m *MerchantModel) updateMerchant(db *sql.DB) error {
   _, err :=
     db.Exec("UPDATE merchant SET name=$1 WHERE id=$2",
       m.Name, m.ID)
@@ -37,13 +37,13 @@ func (m *merchant) updateMerchant(db *sql.DB) error {
   return err
 }
 
-func (m *merchant) deleteMerchant(db *sql.DB) error {
+func (m *MerchantModel) deleteMerchant(db *sql.DB) error {
   _, err := db.Exec("DELETE FROM merchant WHERE id=$1", m.ID)
 
   return err
 }
 
-func (m *merchant) getMerchants(db *sql.DB, start, count int) ([]merchant, error) {
+func readMerchants(db *sql.DB, start, count int) ([]MerchantModel, error) {
   rows, err := db.Query(
     "SELECT id, name FROM merchant LIMIT $1 OFFSET $2",
     count, start)
@@ -54,10 +54,10 @@ func (m *merchant) getMerchants(db *sql.DB, start, count int) ([]merchant, error
 
   defer rows.Close()
 
-  merchants := []merchant{}
+  merchants := []MerchantModel{}
 
   for rows.Next() {
-    var m merchant
+    var m MerchantModel
     if err := rows.Scan(&m.ID, &m.Name); err != nil {
       return nil, err
     }

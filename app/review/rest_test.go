@@ -30,7 +30,7 @@ func TestMain(m *testing.M) {
   testutils.SetupDB(&a)
 
   a.InitializeRouter()
-  review.InitializeRoutes(&a)
+  review.InitializeREST(&a)
 
   code := m.Run()
 
