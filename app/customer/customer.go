@@ -23,7 +23,9 @@ func (schema *CustomerSchema) ID(id int) {
 
 // Id (see above)
 func (model *CustomerModel) Id(id int32) {
-  model.ID = int(id)
+  if id != 0 {
+    model.ID = int(id)
+  }
 }
 
 func (c *Customer) copySchema() {
@@ -39,13 +41,16 @@ func (c *Customer) copySchema() {
 }
 
 func (c *Customer) copyModel() {
-  if c.Model == nil {
-    panic(errors.New("Failed to copy model: Empty Model"))
-  }
-
   if c.Schema == nil {
     c.Schema = &CustomerSchema{}
   }
+  copyModel(c.Model, c.Schema)
+}
 
-  copier.Copy(c.Schema, c.Model)
+func copyModel(model *CustomerModel, schema *CustomerSchema) {
+ if model == nil {
+    panic(errors.New("Failed to copy model: Empty Model"))
+  }
+
+  copier.Copy(schema, model)
 }

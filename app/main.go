@@ -21,7 +21,6 @@ import (
   "app/merchant"
   "app/product"
   "app/review"
-  "app/greeter"
 )
 
 func main() {
@@ -49,7 +48,6 @@ func main() {
   // register GRPC handlers
   a.InitializeGRPC(certPool, addr)
   customer.InitializeGRPC(&a)
-  greeter.InitializeService(&a)
   reflection.Register(a.GRPC)
 
   srv := &http.Server{

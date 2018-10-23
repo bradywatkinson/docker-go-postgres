@@ -108,8 +108,6 @@ func putCustomer(a *common.App) func(http.ResponseWriter, *http.Request) {
     }
     defer r.Body.Close()
 
-    testutils.Log(fmt.Sprintf("%#v", c.Schema))
-
     c.copySchema()
 
     if err := c.Model.updateCustomer(a.DB); err != nil {
@@ -146,7 +144,7 @@ func deleteCustomer(a *common.App) func(http.ResponseWriter, *http.Request) {
       return
     }
 
-    testutils.Log(fmt.Sprint("Response:\n{ result: \"success\""))
+    testutils.Log(fmt.Sprint("Response:\n{ result: \"success\" }"))
 
     common.RespondWithJSON(w, http.StatusOK, map[string]string{"result": "success"})
   }
