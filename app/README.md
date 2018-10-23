@@ -30,6 +30,14 @@ Generate self signed certificates:
 
 GDS uses Reflex to auto-reload the webserver after changes to source are detected. 
 
+## [Protoc](https://github.com/golang/protobuf/protoc-gen-go)
+
+Protoc is used to generate protobuf definitions form `.proto` files.
+
+Generate a protobuf:
+
+    $ docker-compose run protoc <file_path>
+
 ## Managing Dependencies
 
 ### Application Dependencies

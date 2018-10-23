@@ -11,7 +11,7 @@ import "google/protobuf/wrappers.proto";
 // The customer service definition.
 service CustomerService {
   // Create a customer
-  rpc CreateCustomer (CustomerRequest) returns (CustomerSchema) {}
+  rpc CreateCustomer (CustomerSchema) returns (CustomerSchema) {}
   // Get a customer by id
   rpc GetCustomer (CustomerRequest) returns (CustomerSchema) {}
   // Update a customer by id

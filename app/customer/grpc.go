@@ -7,6 +7,7 @@ import (
 
   "google.golang.org/grpc/codes"
   "google.golang.org/grpc/status"
+  wrappers "github.com/golang/protobuf/ptypes/wrappers"
 
   "app/common"
   "app/test_utils"
@@ -38,15 +39,13 @@ func (s *CustomerServiceInterface) CreateCustomer(ctx context.Context, req *Cust
   return c.Schema, nil
 }
 
-// GetCustomer implements CustomerService.GetCustomer
-func (s *CustomerServiceInterface) GetCustomer(ctx context.Context, req *CustomerSchema) (*CustomerSchema, error) {
+// GetCustomer implements CustomerService.CustomerRequest
+func (s *CustomerServiceInterface) GetCustomer(ctx context.Context, req *CustomerRequest) (*CustomerSchema, error) {
   testutils.Log(fmt.Sprint("CustomerService.GetCustomer"))
   c := Customer{
-    Schema: req,
-    Model: nil,
+    Model: &CustomerModel{ID: int(req.Id)},
+    Schema: nil,
   }
-
-  c.copySchema()
 
   if err := c.Model.readCustomer(s.app.DB); err != nil {
     switch err {
@@ -65,10 +64,10 @@ func (s *CustomerServiceInterface) GetCustomer(ctx context.Context, req *Custome
 }
 
 // UpdateCustomer implements CustomerService.UpdateCustomer
-func (s *CustomerServiceInterface) UpdateCustomer(ctx context.Context, req *CustomerSchema) (*CustomerSchema, error) {
+func (s *CustomerServiceInterface) UpdateCustomer(ctx context.Context, req *CustomerRequest) (*CustomerSchema, error) {
   testutils.Log(fmt.Sprint("CustomerService.UpdateCustomer"))
   c := Customer{
-    Schema: req,
+    Schema: req.Customer,
     Model: &CustomerModel{ID: int(req.Id)},
   }
 
@@ -81,6 +80,7 @@ func (s *CustomerServiceInterface) UpdateCustomer(ctx context.Context, req *Cust
     }
   }
 
+  testutils.Log(fmt.Sprintf("%#v", c.Schema))
   c.copySchema()
 
   if err := c.Model.updateCustomer(s.app.DB); err != nil {
@@ -91,4 +91,14 @@ func (s *CustomerServiceInterface) UpdateCustomer(ctx context.Context, req *Cust
 
   testutils.Log(fmt.Sprintf("Response:\n%#v", c.Schema))
   return c.Schema, nil
+}
+
+func (s *CustomerServiceInterface) DeleteCustomer(ctx context.Context, req *CustomerRequest) (*wrappers.StringValue, error) {
+  m := &wrappers.StringValue{Value: "success"}
+  return m, nil
+}
+
+func (s *CustomerServiceInterface) GetCustomers(ctx context.Context, req *CustomersRequest) (*CustomersResponse, error) {
+  customers := &CustomersResponse{}
+  return customers, nil
 }

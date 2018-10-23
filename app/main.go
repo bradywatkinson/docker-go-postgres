@@ -13,6 +13,7 @@ import (
 
   grpc "google.golang.org/grpc"
   "google.golang.org/grpc/reflection"
+  "github.com/gorilla/handlers"
 
   "app/common"
   "app/certs"
@@ -43,7 +44,7 @@ func main() {
   merchant.InitializeRoutes(&a)
   product.InitializeRoutes(&a)
   review.InitializeRoutes(&a)
-  http.Handle("/", a.Router)
+  http.Handle("/", handlers.RecoveryHandler()(a.Router))
 
   // register GRPC handlers
   a.InitializeGRPC(certPool, addr)
