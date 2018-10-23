@@ -4,14 +4,28 @@ syntax = "proto3";
 
 package customer;
 
+// import "google/protobuf/wrappers/wrapper.proto";
+import "google/protobuf/wrappers.proto";
+
+
 // The customer service definition.
 service CustomerService {
   // Create a customer
-  rpc CreateCustomer (CustomerSchema) returns (CustomerSchema) {}
+  rpc CreateCustomer (CustomerRequest) returns (CustomerSchema) {}
   // Get a customer by id
-  rpc GetCustomer (CustomerSchema) returns (CustomerSchema) {}
+  rpc GetCustomer (CustomerRequest) returns (CustomerSchema) {}
   // Update a customer by id
-  rpc UpdateCustomer (CustomerSchema) returns (CustomerSchema) {}
+  rpc UpdateCustomer (CustomerRequest) returns (CustomerSchema) {}
+  // Delete a customer by id
+  rpc DeleteCustomer (CustomerRequest) returns (google.protobuf.StringValue) {}
+  // GetCustomers gets a list of customers by start and count
+  rpc GetCustomers (CustomersRequest) returns (CustomersResponse) {}
+}
+
+// CustomerRequest
+message CustomerRequest {
+  int32 id = 1;
+  CustomerSchema customer = 2;
 }
 
 // The customer interface schema
@@ -19,4 +33,15 @@ message CustomerSchema {
   int32 id = 1;
   string first_name = 2;
   string last_name = 3;
+}
+
+// CustomersRequest describes a request to get count customers starting at id start
+message CustomersRequest {
+  int32 count = 1;
+  int32 start = 2;
+}
+
+// CustomersResponse is a list of customers
+message CustomersResponse {
+  repeated CustomerSchema customers = 1;
 }

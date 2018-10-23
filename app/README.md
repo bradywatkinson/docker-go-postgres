@@ -66,7 +66,11 @@ Use "dep help [command]" for more information about a command.
 
 Add dependencies:
 
-    $ dep ensure -add github.com/pkg/errors github.com/foo/bar
+Adding a dependency is a two step process:
+
+    $ dep ensure -add github.com/pkg/errors github.com/foo/bar -no-vendor
+
+This will cause only the solving function to be run, resulting in the creation of a new Gopkg.lock. After this, rebuild the app container.
 
 Dep will also search the imports in your project to ensure your `Gopkg.lock` is in sync with your imports is in sync with `/vendor`
 

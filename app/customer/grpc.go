@@ -1,10 +1,12 @@
 package customer
 
 import (
+  "database/sql"
   "context"
   "fmt"
 
-  "github.com/jinzhu/copier"
+  "google.golang.org/grpc/codes"
+  "google.golang.org/grpc/status"
 
   "app/common"
   "app/test_utils"
@@ -25,7 +27,9 @@ func (s *CustomerServiceInterface) CreateCustomer(ctx context.Context, req *Cust
 
   c.copySchema()
 
-  _ = c.Model.createCustomer(s.app.DB);
+  if err := c.Model.createCustomer(s.app.DB); err != nil {
+    return nil, status.Error(codes.Internal, err.Error())
+  }
 
   c.copyModel()
 
@@ -36,14 +40,55 @@ func (s *CustomerServiceInterface) CreateCustomer(ctx context.Context, req *Cust
 
 // GetCustomer implements CustomerService.GetCustomer
 func (s *CustomerServiceInterface) GetCustomer(ctx context.Context, req *CustomerSchema) (*CustomerSchema, error) {
-  res := &CustomerSchema{}
-  copier.Copy(res, req)
-  return res, nil
+  testutils.Log(fmt.Sprint("CustomerService.GetCustomer"))
+  c := Customer{
+    Schema: req,
+    Model: nil,
+  }
+
+  c.copySchema()
+
+  if err := c.Model.readCustomer(s.app.DB); err != nil {
+    switch err {
+    case sql.ErrNoRows:
+      return nil, status.Error(codes.NotFound, "Customer not found")
+    default:
+      return nil, status.Error(codes.Internal, err.Error())
+    }
+  }
+
+  c.copyModel()
+
+  testutils.Log(fmt.Sprintf("Response:\n%#v", c.Schema))
+
+  return c.Schema, nil
 }
 
 // UpdateCustomer implements CustomerService.UpdateCustomer
 func (s *CustomerServiceInterface) UpdateCustomer(ctx context.Context, req *CustomerSchema) (*CustomerSchema, error) {
-  res := &CustomerSchema{}
-  copier.Copy(res, req)
-  return res, nil
+  testutils.Log(fmt.Sprint("CustomerService.UpdateCustomer"))
+  c := Customer{
+    Schema: req,
+    Model: &CustomerModel{ID: int(req.Id)},
+  }
+
+  if err := c.Model.readCustomer(s.app.DB); err != nil {
+    switch err {
+    case sql.ErrNoRows:
+      return nil, status.Error(codes.NotFound, "Customer not found")
+    default:
+      return nil, status. Error(codes.Internal, err.Error())
+    }
+  }
+
+  c.copySchema()
+
+  if err := c.Model.updateCustomer(s.app.DB); err != nil {
+    return nil, status.Error(codes.Internal, err.Error())
+  }
+
+  c.copyModel()
+
+  testutils.Log(fmt.Sprintf("Response:\n%#v", c.Schema))
+  return c.Schema, nil
 }

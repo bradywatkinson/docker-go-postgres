@@ -135,6 +135,8 @@ func deleteCustomer(a *common.App) func(http.ResponseWriter, *http.Request) {
       return
     }
 
+    testutils.Log(fmt.Sprintf("{ id: %d }", id))
+
     c := Customer{
       Model: &CustomerModel{ID: id},
       Schema: nil,
@@ -143,7 +145,6 @@ func deleteCustomer(a *common.App) func(http.ResponseWriter, *http.Request) {
       common.RespondWithError(w, http.StatusInternalServerError, err.Error())
       return
     }
-    testutils.Log(fmt.Sprintf("{ id: %d }", id))
 
     testutils.Log(fmt.Sprint("Response:\n{ result: \"success\""))
 
