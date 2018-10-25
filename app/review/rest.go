@@ -6,59 +6,61 @@ import (
   "database/sql"
   "net/http"
   "strconv"
-  "encoding/json"
   "fmt"
 
   "github.com/gorilla/mux"
+  "github.com/mholt/binding"
 
   "app/common"
   "app/test_utils"
 )
 
 func postReview(a *common.App) func(http.ResponseWriter, *http.Request) {
-  return func(w http.ResponseWriter, r *http.Request) {
+  return func(w http.ResponseWriter, req *http.Request) {
     testutils.Log(fmt.Sprint("POST /review:"))
 
-    c := Review{}
-    decoder := json.NewDecoder(r.Body)
-    if err := decoder.Decode(&c.Schema); err != nil {
-      common.RespondWithError(w, http.StatusBadRequest, fmt.Sprintf("Invalid request payload: %s", err))
+    r := Review{
+      Schema: &ReviewSchema{},
+    }
+    if err := binding.Bind(req, r.Schema); err != nil {
+      common.RespondWithError(w, http.StatusBadRequest, fmt.Sprintf("Invalid request payload: %v", err.Error()))
       return
     }
-    defer r.Body.Close()
+    defer req.Body.Close()
 
-    testutils.Log(fmt.Sprintf("%#v", c.Schema))
+    testutils.Log(fmt.Sprintf("%#v", r.Schema))
 
-    c.copySchema()
+    r.copySchema()
 
-    if err := c.Model.createReview(a.DB); err != nil {
+    if err := r.Model.createReview(a.DB); err != nil {
       common.RespondWithError(w, http.StatusInternalServerError, err.Error())
       return
     }
 
-    c.copyModel()
+    r.copyModel()
 
-    testutils.Log(fmt.Sprintf("Response:\n%#v", c.Schema))
-    common.RespondWithJSON(w, http.StatusCreated, c.Schema)
+    testutils.Log(fmt.Sprintf("Response:\n%#v", r.Schema))
+    common.RespondWithJSON(w, http.StatusCreated, r.Schema)
   }
 }
 
 func getReview(a *common.App) func(http.ResponseWriter, *http.Request) {
-  return func(w http.ResponseWriter, r *http.Request) {
+  return func(w http.ResponseWriter, req *http.Request) {
     testutils.Log(fmt.Sprint("GET /review:"))
-    vars := mux.Vars(r)
+    vars := mux.Vars(req)
     id, err := strconv.Atoi(vars["id"])
     if err != nil {
       common.RespondWithError(w, http.StatusBadRequest, "Invalid Review ID")
+      return
     }
 
     testutils.Log(fmt.Sprintf("{ id: %d }", id))
 
-    c := Review{
+    r := Review{
       Model: &ReviewModel{ID: id},
       Schema: &ReviewSchema{},
     }
-    if err := c.Model.readReview(a.DB); err != nil {
+    if err := r.Model.readReview(a.DB); err != nil {
       switch err {
       case sql.ErrNoRows:
         common.RespondWithError(w, http.StatusNotFound, "Review not found")
@@ -68,30 +70,30 @@ func getReview(a *common.App) func(http.ResponseWriter, *http.Request) {
       return
     }
 
-    c.copyModel()
+    r.copyModel()
 
-    testutils.Log(fmt.Sprintf("Response:\n%#v", c.Schema))
+    testutils.Log(fmt.Sprintf("Response:\n%#v", r.Schema))
 
-    common.RespondWithJSON(w, http.StatusOK, c.Schema)
+    common.RespondWithJSON(w, http.StatusOK, r.Schema)
   }
 }
 
 func putReview(a *common.App) func(http.ResponseWriter, *http.Request) {
-  return func(w http.ResponseWriter, r *http.Request) {
+  return func(w http.ResponseWriter, req *http.Request) {
     testutils.Log(fmt.Sprint("PUT /review"))
-    vars := mux.Vars(r)
+    vars := mux.Vars(req)
     id, err := strconv.Atoi(vars["id"])
     if err != nil {
       common.RespondWithError(w, http.StatusBadRequest, "Invalid Review ID")
       return
     }
 
-    c := Review{
+    r := Review{
       Model: &ReviewModel{ID: id},
-      Schema: nil,
+      Schema: &ReviewSchema{},
     }
 
-    if err := c.Model.readReview(a.DB); err != nil {
+    if err := r.Model.readReview(a.DB); err != nil {
       switch err {
       case sql.ErrNoRows:
         common.RespondWithError(w, http.StatusNotFound, "Review not found")
@@ -101,32 +103,33 @@ func putReview(a *common.App) func(http.ResponseWriter, *http.Request) {
       return
     }
 
-    decoder := json.NewDecoder(r.Body)
-    if err := decoder.Decode(&c.Schema); err != nil {
-      common.RespondWithError(w, http.StatusBadRequest, "Invalid request payload")
+    testutils.Log(fmt.Sprintf("Review: %#v", r.Model))
+
+    if err := binding.Bind(req, r.Schema); err != nil {
+      common.RespondWithError(w, http.StatusBadRequest, fmt.Sprintf("Invalid request payload: %v", err.Error()))
       return
     }
-    defer r.Body.Close()
+    defer req.Body.Close()
 
-    c.copySchema()
+    r.copySchema()
 
-    if err := c.Model.updateReview(a.DB); err != nil {
+    if err := r.Model.updateReview(a.DB); err != nil {
       common.RespondWithError(w, http.StatusInternalServerError, err.Error())
       return
     }
 
-    c.copyModel()
+    r.copyModel()
 
-    testutils.Log(fmt.Sprintf("Response:\n%#v", c.Schema))
+    testutils.Log(fmt.Sprintf("Response:\n%#v", r.Schema))
 
-    common.RespondWithJSON(w, http.StatusOK, c.Schema)
+    common.RespondWithJSON(w, http.StatusOK, r.Schema)
   }
 }
 
 func deleteReview(a *common.App) func(http.ResponseWriter, *http.Request) {
-  return func(w http.ResponseWriter, r *http.Request) {
+  return func(w http.ResponseWriter, req *http.Request) {
     testutils.Log(fmt.Sprint("DELETE /review"))
-    vars := mux.Vars(r)
+    vars := mux.Vars(req)
     id, err := strconv.Atoi(vars["id"])
     if err != nil {
       common.RespondWithError(w, http.StatusBadRequest, "Invalid Review ID")
@@ -135,11 +138,11 @@ func deleteReview(a *common.App) func(http.ResponseWriter, *http.Request) {
 
     testutils.Log(fmt.Sprintf("{ id: %d }", id))
 
-    c := Review{
+    r := Review{
       Model: &ReviewModel{ID: id},
       Schema: nil,
     }
-    if err := c.Model.deleteReview(a.DB); err != nil {
+    if err := r.Model.deleteReview(a.DB); err != nil {
       common.RespondWithError(w, http.StatusInternalServerError, err.Error())
       return
     }
@@ -151,21 +154,17 @@ func deleteReview(a *common.App) func(http.ResponseWriter, *http.Request) {
 }
 
 func getReviews(a *common.App) func(http.ResponseWriter, *http.Request) {
-  return func(w http.ResponseWriter, r *http.Request) {
+  return func(w http.ResponseWriter, req *http.Request) {
     testutils.Log(fmt.Sprint("GET /reviews"))
-    count, _ := strconv.Atoi(r.FormValue("count"))
-    start, _ := strconv.Atoi(r.FormValue("start"))
-
-    if count > 10 || count < 1 {
-      count = 10
-    }
-    if start < 0 {
-      start = 0
+    q := &ReviewsQuery{}
+    if err := binding.Bind(req, q); err != nil {
+      common.RespondWithError(w, http.StatusBadRequest, fmt.Sprintf("Invalid request payload: %v", err.Error()))
+      return
     }
 
-    testutils.Log(fmt.Sprintf("{ count: %d, start: %d }", count, start))
+    testutils.Log(fmt.Sprintf("{ count: %d, start: %d }", q.Count, q.Start))
 
-    reviews, err := readReviews(a.DB, start, count)
+    reviews, err := readReviews(a.DB, int(q.Start), int(q.Count))
     if err != nil {
       common.RespondWithError(w, http.StatusInternalServerError, err.Error())
       return

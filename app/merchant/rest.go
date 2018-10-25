@@ -6,59 +6,61 @@ import (
   "database/sql"
   "net/http"
   "strconv"
-  "encoding/json"
   "fmt"
 
   "github.com/gorilla/mux"
+  "github.com/mholt/binding"
 
   "app/common"
   "app/test_utils"
 )
 
 func postMerchant(a *common.App) func(http.ResponseWriter, *http.Request) {
-  return func(w http.ResponseWriter, r *http.Request) {
+  return func(w http.ResponseWriter, req *http.Request) {
     testutils.Log(fmt.Sprint("POST /merchant:"))
 
-    c := Merchant{}
-    decoder := json.NewDecoder(r.Body)
-    if err := decoder.Decode(&c.Schema); err != nil {
-      common.RespondWithError(w, http.StatusBadRequest, fmt.Sprintf("Invalid request payload: %s", err))
+    m := Merchant{
+      Schema: &MerchantSchema{},
+    }
+
+    if err := binding.Bind(req, m.Schema); err != nil {
+      common.RespondWithError(w, http.StatusBadRequest, fmt.Sprintf("Invalid request payload: %v", err.Error()))
       return
     }
-    defer r.Body.Close()
 
-    testutils.Log(fmt.Sprintf("%#v", c.Schema))
+    testutils.Log(fmt.Sprintf("Merchant: %#v", m.Schema))
 
-    c.copySchema()
+    m.copySchema()
 
-    if err := c.Model.createMerchant(a.DB); err != nil {
+    if err := m.Model.createMerchant(a.DB); err != nil {
       common.RespondWithError(w, http.StatusInternalServerError, err.Error())
       return
     }
 
-    c.copyModel()
+    m.copyModel()
 
-    testutils.Log(fmt.Sprintf("Response:\n%#v", c.Schema))
-    common.RespondWithJSON(w, http.StatusCreated, c.Schema)
+    testutils.Log(fmt.Sprintf("Response:\n%#v", m.Schema))
+    common.RespondWithJSON(w, http.StatusCreated, m.Schema)
   }
 }
 
 func getMerchant(a *common.App) func(http.ResponseWriter, *http.Request) {
-  return func(w http.ResponseWriter, r *http.Request) {
+  return func(w http.ResponseWriter, req *http.Request) {
     testutils.Log(fmt.Sprint("GET /merchant:"))
-    vars := mux.Vars(r)
+    vars := mux.Vars(req)
     id, err := strconv.Atoi(vars["id"])
     if err != nil {
       common.RespondWithError(w, http.StatusBadRequest, "Invalid Merchant ID")
+      return
     }
 
     testutils.Log(fmt.Sprintf("{ id: %d }", id))
 
-    c := Merchant{
+    m := Merchant{
       Model: &MerchantModel{ID: id},
       Schema: &MerchantSchema{},
     }
-    if err := c.Model.readMerchant(a.DB); err != nil {
+    if err := m.Model.readMerchant(a.DB); err != nil {
       switch err {
       case sql.ErrNoRows:
         common.RespondWithError(w, http.StatusNotFound, "Merchant not found")
@@ -68,30 +70,32 @@ func getMerchant(a *common.App) func(http.ResponseWriter, *http.Request) {
       return
     }
 
-    c.copyModel()
+    m.copyModel()
 
-    testutils.Log(fmt.Sprintf("Response:\n%#v", c.Schema))
+    testutils.Log(fmt.Sprintf("Response:\n%#v", m.Schema))
 
-    common.RespondWithJSON(w, http.StatusOK, c.Schema)
+    common.RespondWithJSON(w, http.StatusOK, m.Schema)
   }
 }
 
 func putMerchant(a *common.App) func(http.ResponseWriter, *http.Request) {
-  return func(w http.ResponseWriter, r *http.Request) {
+  return func(w http.ResponseWriter, req *http.Request) {
     testutils.Log(fmt.Sprint("PUT /merchant"))
-    vars := mux.Vars(r)
+    vars := mux.Vars(req)
     id, err := strconv.Atoi(vars["id"])
     if err != nil {
       common.RespondWithError(w, http.StatusBadRequest, "Invalid Merchant ID")
       return
     }
 
-    c := Merchant{
+    testutils.Log(fmt.Sprintf("{ id: %d }", id))
+
+    m := Merchant{
       Model: &MerchantModel{ID: id},
-      Schema: nil,
+      Schema: &MerchantSchema{},
     }
 
-    if err := c.Model.readMerchant(a.DB); err != nil {
+    if err := m.Model.readMerchant(a.DB); err != nil {
       switch err {
       case sql.ErrNoRows:
         common.RespondWithError(w, http.StatusNotFound, "Merchant not found")
@@ -101,32 +105,33 @@ func putMerchant(a *common.App) func(http.ResponseWriter, *http.Request) {
       return
     }
 
-    decoder := json.NewDecoder(r.Body)
-    if err := decoder.Decode(&c.Schema); err != nil {
-      common.RespondWithError(w, http.StatusBadRequest, "Invalid request payload")
+    testutils.Log(fmt.Sprintf("Merchant: %#v", m.Model))
+
+    if err := binding.Bind(req, m.Schema); err != nil {
+      common.RespondWithError(w, http.StatusBadRequest, fmt.Sprintf("Invalid request payload: %v", err.Error()))
       return
     }
-    defer r.Body.Close()
+    defer req.Body.Close()
 
-    c.copySchema()
+    m.copySchema()
 
-    if err := c.Model.updateMerchant(a.DB); err != nil {
+    if err := m.Model.updateMerchant(a.DB); err != nil {
       common.RespondWithError(w, http.StatusInternalServerError, err.Error())
       return
     }
 
-    c.copyModel()
+    m.copyModel()
 
-    testutils.Log(fmt.Sprintf("Response:\n%#v", c.Schema))
+    testutils.Log(fmt.Sprintf("Response:\n%#v", m.Schema))
 
-    common.RespondWithJSON(w, http.StatusOK, c.Schema)
+    common.RespondWithJSON(w, http.StatusOK, m.Schema)
   }
 }
 
 func deleteMerchant(a *common.App) func(http.ResponseWriter, *http.Request) {
-  return func(w http.ResponseWriter, r *http.Request) {
+  return func(w http.ResponseWriter, req *http.Request) {
     testutils.Log(fmt.Sprint("DELETE /merchant"))
-    vars := mux.Vars(r)
+    vars := mux.Vars(req)
     id, err := strconv.Atoi(vars["id"])
     if err != nil {
       common.RespondWithError(w, http.StatusBadRequest, "Invalid Merchant ID")
@@ -135,11 +140,11 @@ func deleteMerchant(a *common.App) func(http.ResponseWriter, *http.Request) {
 
     testutils.Log(fmt.Sprintf("{ id: %d }", id))
 
-    c := Merchant{
+    m := Merchant{
       Model: &MerchantModel{ID: id},
       Schema: nil,
     }
-    if err := c.Model.deleteMerchant(a.DB); err != nil {
+    if err := m.Model.deleteMerchant(a.DB); err != nil {
       common.RespondWithError(w, http.StatusInternalServerError, err.Error())
       return
     }
@@ -151,21 +156,17 @@ func deleteMerchant(a *common.App) func(http.ResponseWriter, *http.Request) {
 }
 
 func getMerchants(a *common.App) func(http.ResponseWriter, *http.Request) {
-  return func(w http.ResponseWriter, r *http.Request) {
+  return func(w http.ResponseWriter, req *http.Request) {
     testutils.Log(fmt.Sprint("GET /merchants"))
-    count, _ := strconv.Atoi(r.FormValue("count"))
-    start, _ := strconv.Atoi(r.FormValue("start"))
-
-    if count > 10 || count < 1 {
-      count = 10
-    }
-    if start < 0 {
-      start = 0
+    q := &MerchantsQuery{}
+    if err := binding.Bind(req, q); err != nil {
+      common.RespondWithError(w, http.StatusBadRequest, fmt.Sprintf("Invalid request payload: %v", err.Error()))
+      return
     }
 
-    testutils.Log(fmt.Sprintf("{ count: %d, start: %d }", count, start))
+    testutils.Log(fmt.Sprintf("{ count: %d, start: %d }", q.Count, q.Start))
 
-    merchants, err := readMerchants(a.DB, start, count)
+    merchants, err := readMerchants(a.DB, int(q.Start), int(q.Count))
     if err != nil {
       common.RespondWithError(w, http.StatusInternalServerError, err.Error())
       return

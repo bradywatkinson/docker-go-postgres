@@ -42,7 +42,7 @@ func TestEmptyTable(t *testing.T) {
   testutils.ClearTable(&a, "merchant")
 
   req, _ := http.NewRequest("GET", "/merchants", nil)
-  response := testutils.ExecuteJSONRequest(&a, req)
+  response := testutils.ExecuteRequest(&a, req)
 
   testutils.CheckResponseCode(t, http.StatusOK, response)
 
@@ -130,7 +130,7 @@ func TestUpdateMerchant(t *testing.T) {
   }
 
   if m["name"] == originalMerchant["name"] {
-    t.Errorf("Expected the name to change from '%v' to '%v'. Got '%v'", originalMerchant["name"], m["name"], m["name"])
+    t.Errorf("Expected the name to change from '%v' to 'test merchant - updated name'. Got '%v'", originalMerchant["name"], m["name"])
   }
 }
 

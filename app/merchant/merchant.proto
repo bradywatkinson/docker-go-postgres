@@ -13,17 +13,17 @@ service MerchantService {
   // Create a merchant
   rpc CreateMerchant (MerchantSchema) returns (MerchantSchema) {}
   // Get a merchant by id
-  rpc GetMerchant (MerchantRequest) returns (MerchantSchema) {}
+  rpc GetMerchant (MerchantQuery) returns (MerchantSchema) {}
   // Update a merchant by id
-  rpc UpdateMerchant (MerchantRequest) returns (MerchantSchema) {}
+  rpc UpdateMerchant (MerchantQuery) returns (MerchantSchema) {}
   // Delete a merchant by id
-  rpc DeleteMerchant (MerchantRequest) returns (google.protobuf.StringValue) {}
+  rpc DeleteMerchant (MerchantQuery) returns (google.protobuf.StringValue) {}
   // GetMerchants gets a list of merchants by start and count
-  rpc GetMerchants (MerchantsRequest) returns (MerchantsResponse) {}
+  rpc GetMerchants (MerchantsQuery) returns (MerchantsResponse) {}
 }
 
-// MerchantRequest
-message MerchantRequest {
+// MerchantQuery
+message MerchantQuery {
   int32 id = 1;
   MerchantSchema merchant = 2;
 }
@@ -34,8 +34,8 @@ message MerchantSchema {
   string name = 2;
 }
 
-// MerchantsRequest describes a request to get count merchants starting at id start
-message MerchantsRequest {
+// MerchantsQuery describes a request to get count merchants starting at id start
+message MerchantsQuery {
   int32 count = 1;
   int32 start = 2;
 }

@@ -4,8 +4,12 @@ package review
 
 import (
   "errors"
+  "net/http"
 
   "github.com/jinzhu/copier"
+  "github.com/go-ozzo/ozzo-validation"
+  "github.com/go-ozzo/ozzo-validation/is"
+  "github.com/mholt/binding"
 )
 
 // Review holds all information about a review
@@ -53,23 +57,23 @@ func (model *ReviewModel) CustomerId(customer_id int32) {
 }
 
 
-func (c *Review) copySchema() {
-  if c.Schema == nil {
+func (r *Review) copySchema() {
+  if r.Schema == nil {
     panic(errors.New("Failed to copy schema: Empty Schema"))
   }
 
-  if c.Model == nil {
-    c.Model = &ReviewModel{}
+  if r.Model == nil {
+    r.Model = &ReviewModel{}
   }
 
-  copier.Copy(c.Model, c.Schema)
+  copier.Copy(r.Model, r.Schema)
 }
 
-func (c *Review) copyModel() {
-  if c.Schema == nil {
-    c.Schema = &ReviewSchema{}
+func (r *Review) copyModel() {
+  if r.Schema == nil {
+    r.Schema = &ReviewSchema{}
   }
-  copyModel(c.Model, c.Schema)
+  copyModel(r.Model, r.Schema)
 }
 
 func copyModel(model *ReviewModel, schema *ReviewSchema) {
@@ -78,4 +82,59 @@ func copyModel(model *ReviewModel, schema *ReviewSchema) {
   }
 
   copier.Copy(schema, model)
+}
+
+// FieldMap is used by `github.com/mholt/binding` for data binding
+func (r *ReviewSchema) FieldMap(req *http.Request) binding.FieldMap {
+  return binding.FieldMap{
+    &r.Id:         "id",
+    &r.Rating:     "rating",
+    &r.Review:     "review",
+    &r.CustomerId: "customer_id",
+    &r.ProductId:  "product_id",
+  }
+}
+
+// FieldMap is used by `github.com/mholt/binding` for data binding
+func (r *ReviewsQuery) FieldMap(req *http.Request) binding.FieldMap {
+  return binding.FieldMap{
+    &r.Start: "start",
+    &r.Count: "count",
+  }
+}
+
+// Validate called by:
+// - `github.com/mholt/binding` after data binding
+// - `github.com/grpc-ecosystem/go-grpc-middleware/validator` after the request is received
+func (r *ReviewQuery) Validate() error {
+  return validation.ValidateStruct(r,
+    validation.Field(&r.Id, validation.Required),
+    validation.Field(&r.Review, validation.NilOrNotEmpty),
+  )
+}
+
+// Validate called by:
+// - `github.com/mholt/binding` after data binding
+// - `github.com/grpc-ecosystem/go-grpc-middleware/validator` after the request is received
+func (r *ReviewSchema) Validate() error {
+  return validation.ValidateStruct(r,
+    validation.Field(&r.Id, validation.In(nil).Error("Cannot update id")),
+    validation.Field(&r.Rating, validation.Min(0), validation.Max(5)),
+    validation.Field(&r.Review, is.PrintableASCII),
+    validation.Field(&r.CustomerId, validation.Required),
+    validation.Field(&r.ProductId, validation.Required),
+  )
+}
+
+// Validate called by:
+// - `github.com/mholt/binding` after data binding
+// - `github.com/grpc-ecosystem/go-grpc-middleware/validator` after the request is received
+func (r *ReviewsQuery) Validate() error {
+  if r.Count > 10 || r.Count < 1 {
+    r.Count = 10
+  }
+  if r.Start < 0 {
+    r.Start = 0
+  }
+  return nil
 }

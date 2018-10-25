@@ -16,19 +16,19 @@ import (
 )
 
 func postCustomer(a *common.App) func(http.ResponseWriter, *http.Request) {
-  return func(w http.ResponseWriter, r *http.Request) {
+  return func(w http.ResponseWriter, req *http.Request) {
     testutils.Log(fmt.Sprint("POST /customer:"))
 
     c := Customer{
       Schema: &CustomerSchema{},
     }
 
-    if err := binding.Bind(r, c.Schema); err != nil {
-      common.RespondWithError(w, http.StatusBadRequest, fmt.Sprintf("Invalid request payload: %s", err))
+    if err := binding.Bind(req, c.Schema); err != nil {
+      common.RespondWithError(w, http.StatusBadRequest, fmt.Sprintf("Invalid request payload: %v", err.Error()))
       return
     }
 
-    testutils.Log(fmt.Sprintf("%#v", c.Schema))
+    testutils.Log(fmt.Sprintf("Customer: %#v", c.Schema))
 
     c.copySchema()
 
@@ -45,9 +45,9 @@ func postCustomer(a *common.App) func(http.ResponseWriter, *http.Request) {
 }
 
 func getCustomer(a *common.App) func(http.ResponseWriter, *http.Request) {
-  return func(w http.ResponseWriter, r *http.Request) {
+  return func(w http.ResponseWriter, req *http.Request) {
     testutils.Log(fmt.Sprint("GET /customer:"))
-    vars := mux.Vars(r)
+    vars := mux.Vars(req)
     id, err := strconv.Atoi(vars["id"])
     if err != nil {
       common.RespondWithError(w, http.StatusBadRequest, "Invalid Customer ID")
@@ -79,9 +79,9 @@ func getCustomer(a *common.App) func(http.ResponseWriter, *http.Request) {
 }
 
 func putCustomer(a *common.App) func(http.ResponseWriter, *http.Request) {
-  return func(w http.ResponseWriter, r *http.Request) {
+  return func(w http.ResponseWriter, req *http.Request) {
     testutils.Log(fmt.Sprint("PUT /customer"))
-    vars := mux.Vars(r)
+    vars := mux.Vars(req)
     id, err := strconv.Atoi(vars["id"])
     if err != nil {
       common.RespondWithError(w, http.StatusBadRequest, "Invalid Customer ID")
@@ -107,11 +107,11 @@ func putCustomer(a *common.App) func(http.ResponseWriter, *http.Request) {
 
     testutils.Log(fmt.Sprintf("Customer: %#v", c.Model))
 
-    if err := binding.Bind(r, c.Schema); err != nil {
-      common.RespondWithError(w, http.StatusBadRequest, "Invalid request payload")
+    if err := binding.Bind(req, c.Schema); err != nil {
+      common.RespondWithError(w, http.StatusBadRequest, fmt.Sprintf("Invalid request payload: %v", err.Error()))
       return
     }
-    defer r.Body.Close()
+    defer req.Body.Close()
 
     c.copySchema()
 
@@ -129,9 +129,9 @@ func putCustomer(a *common.App) func(http.ResponseWriter, *http.Request) {
 }
 
 func deleteCustomer(a *common.App) func(http.ResponseWriter, *http.Request) {
-  return func(w http.ResponseWriter, r *http.Request) {
+  return func(w http.ResponseWriter, req *http.Request) {
     testutils.Log(fmt.Sprint("DELETE /customer"))
-    vars := mux.Vars(r)
+    vars := mux.Vars(req)
     id, err := strconv.Atoi(vars["id"])
     if err != nil {
       common.RespondWithError(w, http.StatusBadRequest, "Invalid Customer ID")
@@ -156,11 +156,11 @@ func deleteCustomer(a *common.App) func(http.ResponseWriter, *http.Request) {
 }
 
 func getCustomers(a *common.App) func(http.ResponseWriter, *http.Request) {
-  return func(w http.ResponseWriter, r *http.Request) {
+  return func(w http.ResponseWriter, req *http.Request) {
     testutils.Log(fmt.Sprint("GET /customers"))
     q := &CustomersQuery{}
-    if err := binding.Bind(r, q); err != nil {
-      common.RespondWithError(w, http.StatusBadRequest, "Invalid request payload")
+    if err := binding.Bind(req, q); err != nil {
+      common.RespondWithError(w, http.StatusBadRequest, fmt.Sprintf("Invalid request payload: %v", err.Error()))
       return
     }
 
@@ -168,7 +168,7 @@ func getCustomers(a *common.App) func(http.ResponseWriter, *http.Request) {
 
     customers, err := readCustomers(a.DB, int(q.Start), int(q.Count))
     if err != nil {
-      common.RespondWithError(w, http.StatusInternalServerError,   err.Error())
+      common.RespondWithError(w, http.StatusInternalServerError, err.Error())
       return
     }
 

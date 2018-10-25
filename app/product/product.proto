@@ -13,17 +13,17 @@ service ProductService {
   // Create a product
   rpc CreateProduct (ProductSchema) returns (ProductSchema) {}
   // Get a product by id
-  rpc GetProduct (ProductRequest) returns (ProductSchema) {}
+  rpc GetProduct (ProductQuery) returns (ProductSchema) {}
   // Update a product by id
-  rpc UpdateProduct (ProductRequest) returns (ProductSchema) {}
+  rpc UpdateProduct (ProductQuery) returns (ProductSchema) {}
   // Delete a product by id
-  rpc DeleteProduct (ProductRequest) returns (google.protobuf.StringValue) {}
+  rpc DeleteProduct (ProductQuery) returns (google.protobuf.StringValue) {}
   // GetProducts gets a list of products by start and count
-  rpc GetProducts (ProductsRequest) returns (ProductsResponse) {}
+  rpc GetProducts (ProductsQuery) returns (ProductsResponse) {}
 }
 
-// ProductRequest
-message ProductRequest {
+// ProductQuery
+message ProductQuery {
   int32 id = 1;
   ProductSchema product = 2;
 }
@@ -36,8 +36,8 @@ message ProductSchema {
   int32 merchant_id = 4;
 }
 
-// ProductsRequest describes a request to get count products starting at id start
-message ProductsRequest {
+// ProductsQuery describes a Query to get count products starting at id start
+message ProductsQuery {
   int32 count = 1;
   int32 start = 2;
 }

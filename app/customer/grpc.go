@@ -26,6 +26,8 @@ func (s *CustomerServiceInterface) CreateCustomer(ctx context.Context, req *Cust
     Model: nil,
   }
 
+  testutils.Log(fmt.Sprintf("Customer: %#v", c.Schema))
+
   c.copySchema()
 
   if err := c.Model.createCustomer(s.app.DB); err != nil {

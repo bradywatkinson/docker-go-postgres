@@ -4,8 +4,12 @@ package merchant
 
 import (
   "errors"
+  "net/http"
 
   "github.com/jinzhu/copier"
+  "github.com/go-ozzo/ozzo-validation"
+  "github.com/go-ozzo/ozzo-validation/is"
+  "github.com/mholt/binding"
 )
 
 // Merchant holds all information about a merchant
@@ -28,23 +32,23 @@ func (model *MerchantModel) Id(id int32) {
   }
 }
 
-func (c *Merchant) copySchema() {
-  if c.Schema == nil {
+func (m *Merchant) copySchema() {
+  if m.Schema == nil {
     panic(errors.New("Failed to copy schema: Empty Schema"))
   }
 
-  if c.Model == nil {
-    c.Model = &MerchantModel{}
+  if m.Model == nil {
+    m.Model = &MerchantModel{}
   }
 
-  copier.Copy(c.Model, c.Schema)
+  copier.Copy(m.Model, m.Schema)
 }
 
-func (c *Merchant) copyModel() {
-  if c.Schema == nil {
-    c.Schema = &MerchantSchema{}
+func (m *Merchant) copyModel() {
+  if m.Schema == nil {
+    m.Schema = &MerchantSchema{}
   }
-  copyModel(c.Model, c.Schema)
+  copyModel(m.Model, m.Schema)
 }
 
 func copyModel(model *MerchantModel, schema *MerchantSchema) {
@@ -53,4 +57,53 @@ func copyModel(model *MerchantModel, schema *MerchantSchema) {
   }
 
   copier.Copy(schema, model)
+}
+
+// FieldMap is used by `github.com/mholt/binding` for data binding
+func (m *MerchantSchema) FieldMap(req *http.Request) binding.FieldMap {
+  return binding.FieldMap{
+    &m.Id:   "id",
+    &m.Name: "name",
+  }
+}
+
+// FieldMap is used by `github.com/mholt/binding` for data binding
+func (m *MerchantsQuery) FieldMap(req *http.Request) binding.FieldMap {
+  return binding.FieldMap{
+    &m.Start: "start",
+    &m.Count: "count",
+  }
+}
+
+// Validate called by:
+// - `github.com/mholt/binding` after data binding
+// - `github.com/grpc-ecosystem/go-grpc-middleware/validator` after the request is received
+func (m *MerchantQuery) Validate() error {
+  return validation.ValidateStruct(m,
+    validation.Field(&m.Id, validation.Required),
+    validation.Field(&m.Merchant, validation.NilOrNotEmpty),
+  )
+}
+
+// Validate called by:
+// - `github.com/mholt/binding` after data binding
+// - `github.com/grpc-ecosystem/go-grpc-middleware/validator` after the request is received
+func (m *MerchantSchema) Validate() error {
+  return validation.ValidateStruct(m,
+    validation.Field(&m.Id, validation.In(nil).Error("Cannot update id")),
+    validation.Field(&m.Name, is.PrintableASCII),
+  )
+}
+
+// Validate called by:
+// - `github.com/mholt/binding` after data binding
+// - `github.com/grpc-ecosystem/go-grpc-middleware/validator` after the request is received
+func (m *MerchantsQuery) Validate() error {
+  if m.Count > 10 || m.Count < 1 {
+    m.Count = 10
+  }
+  if m.Start < 0 {
+    m.Start = 0
+  }
+  return nil
 }

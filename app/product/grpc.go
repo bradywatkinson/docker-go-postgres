@@ -1,3 +1,5 @@
+// product/grpp.go
+
 package product
 
 import (
@@ -21,33 +23,35 @@ type ProductServiceInterface struct{
 // CreateProduct implements ProductService.CreateProduct
 func (s *ProductServiceInterface) CreateProduct(ctx context.Context, req *ProductSchema) (*ProductSchema, error) {
   testutils.Log(fmt.Sprint("ProductService.CreateProduct"))
-  c := Product{
+  p := Product{
     Schema: req,
     Model: nil,
   }
 
-  c.copySchema()
+  testutils.Log(fmt.Sprintf("Product: %#v", p.Schema))
 
-  if err := c.Model.createProduct(s.app.DB); err != nil {
+  p.copySchema()
+
+  if err := p.Model.createProduct(s.app.DB); err != nil {
     return nil, status.Error(codes.Internal, err.Error())
   }
 
-  c.copyModel()
+  p.copyModel()
 
-  testutils.Log(fmt.Sprintf("Response:\n%#v", c.Schema))
+  testutils.Log(fmt.Sprintf("Response:\n%#v", p.Schema))
 
-  return c.Schema, nil
+  return p.Schema, nil
 }
 
-// GetProduct implements ProductService.ProductRequest
-func (s *ProductServiceInterface) GetProduct(ctx context.Context, req *ProductRequest) (*ProductSchema, error) {
+// GetProduct implements ProductService.ProductQuery
+func (s *ProductServiceInterface) GetProduct(ctx context.Context, req *ProductQuery) (*ProductSchema, error) {
   testutils.Log(fmt.Sprint("ProductService.GetProduct"))
-  c := Product{
+  p := Product{
     Model: &ProductModel{ID: int(req.Id)},
     Schema: nil,
   }
 
-  if err := c.Model.readProduct(s.app.DB); err != nil {
+  if err := p.Model.readProduct(s.app.DB); err != nil {
     switch err {
     case sql.ErrNoRows:
       return nil, status.Error(codes.NotFound, "Product not found")
@@ -56,22 +60,22 @@ func (s *ProductServiceInterface) GetProduct(ctx context.Context, req *ProductRe
     }
   }
 
-  c.copyModel()
+  p.copyModel()
 
-  testutils.Log(fmt.Sprintf("Response:\n%#v", c.Schema))
+  testutils.Log(fmt.Sprintf("Response:\n%#v", p.Schema))
 
-  return c.Schema, nil
+  return p.Schema, nil
 }
 
 // UpdateProduct implements ProductService.UpdateProduct
-func (s *ProductServiceInterface) UpdateProduct(ctx context.Context, req *ProductRequest) (*ProductSchema, error) {
+func (s *ProductServiceInterface) UpdateProduct(ctx context.Context, req *ProductQuery) (*ProductSchema, error) {
   testutils.Log(fmt.Sprint("ProductService.UpdateProduct"))
-  c := Product{
+  p := Product{
     Schema: req.Product,
     Model: &ProductModel{ID: int(req.Id)},
   }
 
-  if err := c.Model.readProduct(s.app.DB); err != nil {
+  if err := p.Model.readProduct(s.app.DB); err != nil {
     switch err {
     case sql.ErrNoRows:
       return nil, status.Error(codes.NotFound, "Product not found")
@@ -80,27 +84,27 @@ func (s *ProductServiceInterface) UpdateProduct(ctx context.Context, req *Produc
     }
   }
 
-  c.copySchema()
+  p.copySchema()
 
-  if err := c.Model.updateProduct(s.app.DB); err != nil {
+  if err := p.Model.updateProduct(s.app.DB); err != nil {
     return nil, status.Error(codes.Internal, err.Error())
   }
 
-  c.copyModel()
+  p.copyModel()
 
-  testutils.Log(fmt.Sprintf("Response:\n%#v", c.Schema))
-  return c.Schema, nil
+  testutils.Log(fmt.Sprintf("Response:\n%#v", p.Schema))
+  return p.Schema, nil
 }
 
 // DeleteProduct implements ProductService.DeleteProduct
-func (s *ProductServiceInterface) DeleteProduct(ctx context.Context, req *ProductRequest) (*wrappers.StringValue, error) {
+func (s *ProductServiceInterface) DeleteProduct(ctx context.Context, req *ProductQuery) (*wrappers.StringValue, error) {
   testutils.Log(fmt.Sprint("ProductService.DeleteProduct"))
 
-  c := Product{
+  p := Product{
     Model: &ProductModel{ID: int(req.Id)},
     Schema: nil,
   }
-  if err := c.Model.deleteProduct(s.app.DB); err != nil {
+  if err := p.Model.deleteProduct(s.app.DB); err != nil {
     return nil, status.Error(codes.Internal, err.Error())
   }
 
@@ -111,17 +115,10 @@ func (s *ProductServiceInterface) DeleteProduct(ctx context.Context, req *Produc
 }
 
 // GetProducts implements ProductService.GetProducts
-func (s *ProductServiceInterface) GetProducts(ctx context.Context, req *ProductsRequest) (*ProductsResponse, error) {
+func (s *ProductServiceInterface) GetProducts(ctx context.Context, req *ProductsQuery) (*ProductsResponse, error) {
   testutils.Log(fmt.Sprint("ProductService.GetProducts"))
 
   count, start := int(req.Count), int(req.Start)
-
-  if count > 10 || count < 1 {
-    count = 10
-  }
-  if start < 0 {
-    start = 0
-  }
 
   testutils.Log(fmt.Sprintf("{ count: %d, start: %d }", count, start))
 
@@ -134,9 +131,9 @@ func (s *ProductServiceInterface) GetProducts(ctx context.Context, req *Products
     Products: []*ProductSchema{},
   }
 
-  for _, c := range products {
+  for _, p := range products {
     tmp := &ProductSchema{}
-    copyModel(&c, tmp)
+    copyModel(&p, tmp)
     res.Products = append(res.Products, tmp)
   }
 

@@ -13,17 +13,17 @@ service ReviewService {
   // Create a review
   rpc CreateReview (ReviewSchema) returns (ReviewSchema) {}
   // Get a review by id
-  rpc GetReview (ReviewRequest) returns (ReviewSchema) {}
+  rpc GetReview (ReviewQuery) returns (ReviewSchema) {}
   // Update a review by id
-  rpc UpdateReview (ReviewRequest) returns (ReviewSchema) {}
+  rpc UpdateReview (ReviewQuery) returns (ReviewSchema) {}
   // Delete a review by id
-  rpc DeleteReview (ReviewRequest) returns (google.protobuf.StringValue) {}
+  rpc DeleteReview (ReviewQuery) returns (google.protobuf.StringValue) {}
   // GetReviews gets a list of reviews by start and count
-  rpc GetReviews (ReviewsRequest) returns (ReviewsResponse) {}
+  rpc GetReviews (ReviewsQuery) returns (ReviewsResponse) {}
 }
 
-// ReviewRequest
-message ReviewRequest {
+// ReviewQuery
+message ReviewQuery {
   int32 id = 1;
   ReviewSchema review = 2;
 }
@@ -37,8 +37,8 @@ message ReviewSchema {
   int32 product_id = 5;
 }
 
-// ReviewsRequest describes a request to get count reviews starting at id start
-message ReviewsRequest {
+// ReviewsQuery describes a Query to get count reviews starting at id start
+message ReviewsQuery {
   int32 count = 1;
   int32 start = 2;
 }

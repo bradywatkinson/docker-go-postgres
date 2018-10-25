@@ -21,33 +21,35 @@ type ReviewServiceInterface struct{
 // CreateReview implements ReviewService.CreateReview
 func (s *ReviewServiceInterface) CreateReview(ctx context.Context, req *ReviewSchema) (*ReviewSchema, error) {
   testutils.Log(fmt.Sprint("ReviewService.CreateReview"))
-  c := Review{
+  r := Review{
     Schema: req,
     Model: nil,
   }
 
-  c.copySchema()
+  testutils.Log(fmt.Sprintf("Review: %#v", r.Schema))
 
-  if err := c.Model.createReview(s.app.DB); err != nil {
+  r.copySchema()
+
+  if err := r.Model.createReview(s.app.DB); err != nil {
     return nil, status.Error(codes.Internal, err.Error())
   }
 
-  c.copyModel()
+  r.copyModel()
 
-  testutils.Log(fmt.Sprintf("Response:\n%#v", c.Schema))
+  testutils.Log(fmt.Sprintf("Response:\n%#v", r.Schema))
 
-  return c.Schema, nil
+  return r.Schema, nil
 }
 
-// GetReview implements ReviewService.ReviewRequest
-func (s *ReviewServiceInterface) GetReview(ctx context.Context, req *ReviewRequest) (*ReviewSchema, error) {
+// GetReview implements ReviewService.ReviewQuery
+func (s *ReviewServiceInterface) GetReview(ctx context.Context, req *ReviewQuery) (*ReviewSchema, error) {
   testutils.Log(fmt.Sprint("ReviewService.GetReview"))
-  c := Review{
+  r := Review{
     Model: &ReviewModel{ID: int(req.Id)},
     Schema: nil,
   }
 
-  if err := c.Model.readReview(s.app.DB); err != nil {
+  if err := r.Model.readReview(s.app.DB); err != nil {
     switch err {
     case sql.ErrNoRows:
       return nil, status.Error(codes.NotFound, "Review not found")
@@ -56,22 +58,22 @@ func (s *ReviewServiceInterface) GetReview(ctx context.Context, req *ReviewReque
     }
   }
 
-  c.copyModel()
+  r.copyModel()
 
-  testutils.Log(fmt.Sprintf("Response:\n%#v", c.Schema))
+  testutils.Log(fmt.Sprintf("Response:\n%#v", r.Schema))
 
-  return c.Schema, nil
+  return r.Schema, nil
 }
 
 // UpdateReview implements ReviewService.UpdateReview
-func (s *ReviewServiceInterface) UpdateReview(ctx context.Context, req *ReviewRequest) (*ReviewSchema, error) {
+func (s *ReviewServiceInterface) UpdateReview(ctx context.Context, req *ReviewQuery) (*ReviewSchema, error) {
   testutils.Log(fmt.Sprint("ReviewService.UpdateReview"))
-  c := Review{
+  r := Review{
     Schema: req.Review,
     Model: &ReviewModel{ID: int(req.Id)},
   }
 
-  if err := c.Model.readReview(s.app.DB); err != nil {
+  if err := r.Model.readReview(s.app.DB); err != nil {
     switch err {
     case sql.ErrNoRows:
       return nil, status.Error(codes.NotFound, "Review not found")
@@ -80,27 +82,27 @@ func (s *ReviewServiceInterface) UpdateReview(ctx context.Context, req *ReviewRe
     }
   }
 
-  c.copySchema()
+  r.copySchema()
 
-  if err := c.Model.updateReview(s.app.DB); err != nil {
+  if err := r.Model.updateReview(s.app.DB); err != nil {
     return nil, status.Error(codes.Internal, err.Error())
   }
 
-  c.copyModel()
+  r.copyModel()
 
-  testutils.Log(fmt.Sprintf("Response:\n%#v", c.Schema))
-  return c.Schema, nil
+  testutils.Log(fmt.Sprintf("Response:\n%#v", r.Schema))
+  return r.Schema, nil
 }
 
 // DeleteReview implements ReviewService.DeleteReview
-func (s *ReviewServiceInterface) DeleteReview(ctx context.Context, req *ReviewRequest) (*wrappers.StringValue, error) {
+func (s *ReviewServiceInterface) DeleteReview(ctx context.Context, req *ReviewQuery) (*wrappers.StringValue, error) {
   testutils.Log(fmt.Sprint("ReviewService.DeleteReview"))
 
-  c := Review{
+  r := Review{
     Model: &ReviewModel{ID: int(req.Id)},
     Schema: nil,
   }
-  if err := c.Model.deleteReview(s.app.DB); err != nil {
+  if err := r.Model.deleteReview(s.app.DB); err != nil {
     return nil, status.Error(codes.Internal, err.Error())
   }
 
@@ -111,17 +113,10 @@ func (s *ReviewServiceInterface) DeleteReview(ctx context.Context, req *ReviewRe
 }
 
 // GetReviews implements ReviewService.GetReviews
-func (s *ReviewServiceInterface) GetReviews(ctx context.Context, req *ReviewsRequest) (*ReviewsResponse, error) {
+func (s *ReviewServiceInterface) GetReviews(ctx context.Context, req *ReviewsQuery) (*ReviewsResponse, error) {
   testutils.Log(fmt.Sprint("ReviewService.GetReviews"))
 
   count, start := int(req.Count), int(req.Start)
-
-  if count > 10 || count < 1 {
-    count = 10
-  }
-  if start < 0 {
-    start = 0
-  }
 
   testutils.Log(fmt.Sprintf("{ count: %d, start: %d }", count, start))
 
@@ -134,9 +129,9 @@ func (s *ReviewServiceInterface) GetReviews(ctx context.Context, req *ReviewsReq
     Reviews: []*ReviewSchema{},
   }
 
-  for _, c := range reviews {
+  for _, r := range reviews {
     tmp := &ReviewSchema{}
-    copyModel(&c, tmp)
+    copyModel(&r, tmp)
     res.Reviews = append(res.Reviews, tmp)
   }
 

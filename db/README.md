@@ -55,3 +55,7 @@ Generate SQL and export it to `/migrations/transforms`
     );
 
     INSERT INTO alembic_version (version_num) VALUES ('6173b7ed3174');
+
+## Connect to the instance
+
+    $ docker-compose exec db psql -U dev -h db

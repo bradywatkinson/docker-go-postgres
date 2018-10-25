@@ -42,7 +42,7 @@ func TestEmptyTable(t *testing.T) {
   testutils.ClearTable(&a, "review")
 
   req, _ := http.NewRequest("GET", "/reviews", nil)
-  response := testutils.ExecuteJSONRequest(&a, req)
+  response := testutils.ExecuteRequest(&a, req)
 
   testutils.CheckResponseCode(t, http.StatusOK, response)
 
@@ -132,7 +132,7 @@ func TestUpdateReview(t *testing.T) {
   var originalReview map[string]interface{}
   json.Unmarshal(response.Body.Bytes(), &originalReview)
 
-  payload := []byte(`{"rating":3,"review":"this is a review - updated"}`)
+  payload := []byte(`{"rating":3,"review":"this is a review - updated","customer_id":1,"product_id":1}`)
 
   req, _ = http.NewRequest("PUT", "/review/1", bytes.NewBuffer(payload))
   response = testutils.ExecuteJSONRequest(&a, req)
@@ -147,11 +147,11 @@ func TestUpdateReview(t *testing.T) {
   }
 
   if m["rating"] == originalReview["rating"] {
-    t.Errorf("Expected the rating to change from '%v' to '%v'. Got '%v'", originalReview["name"], m["name"], m["name"])
+    t.Errorf("Expected the rating to change from '%v' to '3'. Got '%v'", originalReview["rating"], m["name"])
   }
 
   if m["review"] == originalReview["review"] {
-    t.Errorf("Expected the review to change from '%v' to '%v'. Got '%v'", originalReview["price"], m["price"], m["price"])
+    t.Errorf("Expected the review to change from '%v' to 'this is a review - updated'. Got '%v'", originalReview["review"], m["review"])
   }
 }
 

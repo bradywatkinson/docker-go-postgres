@@ -42,7 +42,7 @@ func TestEmptyTable(t *testing.T) {
   testutils.ClearTable(&a, "product")
 
   req, _ := http.NewRequest("GET", "/products", nil)
-  response := testutils.ExecuteJSONRequest(&a, req)
+  response := testutils.ExecuteRequest(&a, req)
 
   testutils.CheckResponseCode(t, http.StatusOK, response)
 
@@ -121,7 +121,7 @@ func TestUpdateProduct(t *testing.T) {
   var originalProduct map[string]interface{}
   json.Unmarshal(response.Body.Bytes(), &originalProduct)
 
-  payload := []byte(`{"name":"test product - updated name","price":11.22}`)
+  payload := []byte(`{"name":"test product - updated name","price":11.22, "merchant_id": 1}`)
 
   req, _ = http.NewRequest("PUT", "/product/1", bytes.NewBuffer(payload))
   response = testutils.ExecuteJSONRequest(&a, req)
@@ -136,11 +136,11 @@ func TestUpdateProduct(t *testing.T) {
   }
 
   if m["name"] == originalProduct["name"] {
-    t.Errorf("Expected the name to change from '%v' to '%v'. Got '%v'", originalProduct["name"], m["name"], m["name"])
+    t.Errorf("Expected the name to change from '%v' to 'test product - updated name'. Got '%v'", originalProduct["name"], m["name"])
   }
 
   if m["price"] == originalProduct["price"] {
-    t.Errorf("Expected the price to change from '%v' to '%v'. Got '%v'", originalProduct["price"], m["price"], m["price"])
+    t.Errorf("Expected the price to change from '%v' to '11.22'. Got '%v'", originalProduct["price"], m["price"])
   }
 }
 

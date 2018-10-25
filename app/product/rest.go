@@ -6,59 +6,61 @@ import (
   "database/sql"
   "net/http"
   "strconv"
-  "encoding/json"
   "fmt"
 
   "github.com/gorilla/mux"
+  "github.com/mholt/binding"
 
   "app/common"
   "app/test_utils"
 )
 
 func postProduct(a *common.App) func(http.ResponseWriter, *http.Request) {
-  return func(w http.ResponseWriter, r *http.Request) {
+  return func(w http.ResponseWriter, req *http.Request) {
     testutils.Log(fmt.Sprint("POST /product:"))
 
-    c := Product{}
-    decoder := json.NewDecoder(r.Body)
-    if err := decoder.Decode(&c.Schema); err != nil {
-      common.RespondWithError(w, http.StatusBadRequest, fmt.Sprintf("Invalid request payload: %s", err))
+    p := Product{
+      Schema: &ProductSchema{},
+    }
+
+    if err := binding.Bind(req, p.Schema); err != nil {
+      common.RespondWithError(w, http.StatusBadRequest, fmt.Sprintf("Invalid request payload: %v", err.Error()))
       return
     }
-    defer r.Body.Close()
 
-    testutils.Log(fmt.Sprintf("%#v", c.Schema))
+    testutils.Log(fmt.Sprintf("Product: %#v", p.Schema))
 
-    c.copySchema()
+    p.copySchema()
 
-    if err := c.Model.createProduct(a.DB); err != nil {
+    if err := p.Model.createProduct(a.DB); err != nil {
       common.RespondWithError(w, http.StatusInternalServerError, err.Error())
       return
     }
 
-    c.copyModel()
+    p.copyModel()
 
-    testutils.Log(fmt.Sprintf("Response:\n%#v", c.Schema))
-    common.RespondWithJSON(w, http.StatusCreated, c.Schema)
+    testutils.Log(fmt.Sprintf("Response:\n%#v", p.Schema))
+    common.RespondWithJSON(w, http.StatusCreated, p.Schema)
   }
 }
 
 func getProduct(a *common.App) func(http.ResponseWriter, *http.Request) {
-  return func(w http.ResponseWriter, r *http.Request) {
+  return func(w http.ResponseWriter, req *http.Request) {
     testutils.Log(fmt.Sprint("GET /product:"))
-    vars := mux.Vars(r)
+    vars := mux.Vars(req)
     id, err := strconv.Atoi(vars["id"])
     if err != nil {
       common.RespondWithError(w, http.StatusBadRequest, "Invalid Product ID")
+      return
     }
 
     testutils.Log(fmt.Sprintf("{ id: %d }", id))
 
-    c := Product{
+    p := Product{
       Model: &ProductModel{ID: id},
       Schema: &ProductSchema{},
     }
-    if err := c.Model.readProduct(a.DB); err != nil {
+    if err := p.Model.readProduct(a.DB); err != nil {
       switch err {
       case sql.ErrNoRows:
         common.RespondWithError(w, http.StatusNotFound, "Product not found")
@@ -68,30 +70,30 @@ func getProduct(a *common.App) func(http.ResponseWriter, *http.Request) {
       return
     }
 
-    c.copyModel()
+    p.copyModel()
 
-    testutils.Log(fmt.Sprintf("Response:\n%#v", c.Schema))
+    testutils.Log(fmt.Sprintf("Response:\n%#v", p.Schema))
 
-    common.RespondWithJSON(w, http.StatusOK, c.Schema)
+    common.RespondWithJSON(w, http.StatusOK, p.Schema)
   }
 }
 
 func putProduct(a *common.App) func(http.ResponseWriter, *http.Request) {
-  return func(w http.ResponseWriter, r *http.Request) {
+  return func(w http.ResponseWriter, req *http.Request) {
     testutils.Log(fmt.Sprint("PUT /product"))
-    vars := mux.Vars(r)
+    vars := mux.Vars(req)
     id, err := strconv.Atoi(vars["id"])
     if err != nil {
       common.RespondWithError(w, http.StatusBadRequest, "Invalid Product ID")
       return
     }
 
-    c := Product{
+    p := Product{
       Model: &ProductModel{ID: id},
-      Schema: nil,
+      Schema: &ProductSchema{},
     }
 
-    if err := c.Model.readProduct(a.DB); err != nil {
+    if err := p.Model.readProduct(a.DB); err != nil {
       switch err {
       case sql.ErrNoRows:
         common.RespondWithError(w, http.StatusNotFound, "Product not found")
@@ -101,32 +103,33 @@ func putProduct(a *common.App) func(http.ResponseWriter, *http.Request) {
       return
     }
 
-    decoder := json.NewDecoder(r.Body)
-    if err := decoder.Decode(&c.Schema); err != nil {
-      common.RespondWithError(w, http.StatusBadRequest, "Invalid request payload")
+    testutils.Log(fmt.Sprintf("Product: %#v", p.Model))
+
+    if err := binding.Bind(req, p.Schema); err != nil {
+      common.RespondWithError(w, http.StatusBadRequest, fmt.Sprintf("Invalid request payload: %v", err.Error()))
       return
     }
-    defer r.Body.Close()
+    defer req.Body.Close()
 
-    c.copySchema()
+    p.copySchema()
 
-    if err := c.Model.updateProduct(a.DB); err != nil {
+    if err := p.Model.updateProduct(a.DB); err != nil {
       common.RespondWithError(w, http.StatusInternalServerError, err.Error())
       return
     }
 
-    c.copyModel()
+    p.copyModel()
 
-    testutils.Log(fmt.Sprintf("Response:\n%#v", c.Schema))
+    testutils.Log(fmt.Sprintf("Response:\n%#v", p.Schema))
 
-    common.RespondWithJSON(w, http.StatusOK, c.Schema)
+    common.RespondWithJSON(w, http.StatusOK, p.Schema)
   }
 }
 
 func deleteProduct(a *common.App) func(http.ResponseWriter, *http.Request) {
-  return func(w http.ResponseWriter, r *http.Request) {
+  return func(w http.ResponseWriter, req *http.Request) {
     testutils.Log(fmt.Sprint("DELETE /product"))
-    vars := mux.Vars(r)
+    vars := mux.Vars(req)
     id, err := strconv.Atoi(vars["id"])
     if err != nil {
       common.RespondWithError(w, http.StatusBadRequest, "Invalid Product ID")
@@ -135,11 +138,11 @@ func deleteProduct(a *common.App) func(http.ResponseWriter, *http.Request) {
 
     testutils.Log(fmt.Sprintf("{ id: %d }", id))
 
-    c := Product{
+    p := Product{
       Model: &ProductModel{ID: id},
       Schema: nil,
     }
-    if err := c.Model.deleteProduct(a.DB); err != nil {
+    if err := p.Model.deleteProduct(a.DB); err != nil {
       common.RespondWithError(w, http.StatusInternalServerError, err.Error())
       return
     }
@@ -151,21 +154,17 @@ func deleteProduct(a *common.App) func(http.ResponseWriter, *http.Request) {
 }
 
 func getProducts(a *common.App) func(http.ResponseWriter, *http.Request) {
-  return func(w http.ResponseWriter, r *http.Request) {
+  return func(w http.ResponseWriter, req *http.Request) {
     testutils.Log(fmt.Sprint("GET /products"))
-    count, _ := strconv.Atoi(r.FormValue("count"))
-    start, _ := strconv.Atoi(r.FormValue("start"))
-
-    if count > 10 || count < 1 {
-      count = 10
-    }
-    if start < 0 {
-      start = 0
+    q := &ProductsQuery{}
+    if err := binding.Bind(req, q); err != nil {
+      common.RespondWithError(w, http.StatusBadRequest,fmt.Sprintf("Invalid request payload: %v", err.Error()))
+      return
     }
 
-    testutils.Log(fmt.Sprintf("{ count: %d, start: %d }", count, start))
+    testutils.Log(fmt.Sprintf("{ count: %d, start: %d }", q.Count, q.Start))
 
-    products, err := readProducts(a.DB, start, count)
+    products, err := readProducts(a.DB, int(q.Start), int(q.Count))
     if err != nil {
       common.RespondWithError(w, http.StatusInternalServerError, err.Error())
       return
