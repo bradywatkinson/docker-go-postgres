@@ -42,9 +42,9 @@ func TestEmptyTable(t *testing.T) {
   testutils.ClearTable(&a, "review")
 
   req, _ := http.NewRequest("GET", "/reviews", nil)
-  response := testutils.ExecuteRequest(&a, req)
+  response := testutils.ExecuteJSONRequest(&a, req)
 
-  testutils.CheckResponseCode(t, http.StatusOK, response.Code)
+  testutils.CheckResponseCode(t, http.StatusOK, response)
 
   if body := response.Body.String(); body != "[]" {
     t.Errorf("Expected an empty array. Got %s", body)
@@ -55,9 +55,9 @@ func TestGetNonExistentReview(t *testing.T) {
   testutils.ClearTable(&a, "review")
 
   req, _ := http.NewRequest("GET", "/review/11", nil)
-  response := testutils.ExecuteRequest(&a, req)
+  response := testutils.ExecuteJSONRequest(&a, req)
 
-  testutils.CheckResponseCode(t, http.StatusNotFound, response.Code)
+  testutils.CheckResponseCode(t, http.StatusNotFound, response)
 
   var m map[string]string
   json.Unmarshal(response.Body.Bytes(), &m)
@@ -77,9 +77,9 @@ func TestCreateReview(t *testing.T) {
   payload := []byte(`{"rating":4,"review":"this is a review","customer_id":1,"product_id":1}`)
 
   req, _ := http.NewRequest("POST", "/review", bytes.NewBuffer(payload))
-  response := testutils.ExecuteRequest(&a, req)
+  response := testutils.ExecuteJSONRequest(&a, req)
 
-  testutils.CheckResponseCode(t, http.StatusCreated, response.Code)
+  testutils.CheckResponseCode(t, http.StatusCreated, response)
 
   var m map[string]interface{}
   json.Unmarshal(response.Body.Bytes(), &m)
@@ -115,9 +115,9 @@ func TestGetReview(t *testing.T) {
   }
 
   req, _ := http.NewRequest("GET", "/review/1", nil)
-  response := testutils.ExecuteRequest(&a, req)
+  response := testutils.ExecuteJSONRequest(&a, req)
 
-  testutils.CheckResponseCode(t, http.StatusOK, response.Code)
+  testutils.CheckResponseCode(t, http.StatusOK, response)
 }
 
 func TestUpdateReview(t *testing.T) {
@@ -128,16 +128,16 @@ func TestUpdateReview(t *testing.T) {
   }
 
   req, _ := http.NewRequest("GET", "/review/1", nil)
-  response := testutils.ExecuteRequest(&a, req)
+  response := testutils.ExecuteJSONRequest(&a, req)
   var originalReview map[string]interface{}
   json.Unmarshal(response.Body.Bytes(), &originalReview)
 
   payload := []byte(`{"rating":3,"review":"this is a review - updated"}`)
 
   req, _ = http.NewRequest("PUT", "/review/1", bytes.NewBuffer(payload))
-  response = testutils.ExecuteRequest(&a, req)
+  response = testutils.ExecuteJSONRequest(&a, req)
 
-  testutils.CheckResponseCode(t, http.StatusOK, response.Code)
+  testutils.CheckResponseCode(t, http.StatusOK, response)
 
   var m map[string]interface{}
   json.Unmarshal(response.Body.Bytes(), &m)
@@ -163,15 +163,15 @@ func TestDeleteReview(t *testing.T) {
   }
 
   req, _ := http.NewRequest("GET", "/review/1", nil)
-  response := testutils.ExecuteRequest(&a, req)
-  testutils.CheckResponseCode(t, http.StatusOK, response.Code)
+  response := testutils.ExecuteJSONRequest(&a, req)
+  testutils.CheckResponseCode(t, http.StatusOK, response)
 
   req, _ = http.NewRequest("DELETE", "/review/1", nil)
-  response = testutils.ExecuteRequest(&a, req)
+  response = testutils.ExecuteJSONRequest(&a, req)
 
-  testutils.CheckResponseCode(t, http.StatusOK, response.Code)
+  testutils.CheckResponseCode(t, http.StatusOK, response)
 
   req, _ = http.NewRequest("GET", "/review/1", nil)
-  response = testutils.ExecuteRequest(&a, req)
-  testutils.CheckResponseCode(t, http.StatusNotFound, response.Code)
+  response = testutils.ExecuteJSONRequest(&a, req)
+  testutils.CheckResponseCode(t, http.StatusNotFound, response)
 }

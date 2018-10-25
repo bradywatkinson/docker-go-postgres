@@ -42,9 +42,9 @@ func TestEmptyTable(t *testing.T) {
   testutils.ClearTable(&a, "product")
 
   req, _ := http.NewRequest("GET", "/products", nil)
-  response := testutils.ExecuteRequest(&a, req)
+  response := testutils.ExecuteJSONRequest(&a, req)
 
-  testutils.CheckResponseCode(t, http.StatusOK, response.Code)
+  testutils.CheckResponseCode(t, http.StatusOK, response)
 
   if body := response.Body.String(); body != "[]" {
     t.Errorf("Expected an empty array. Got %s", body)
@@ -55,9 +55,9 @@ func TestGetNonExistentProduct(t *testing.T) {
   testutils.ClearTable(&a, "product")
 
   req, _ := http.NewRequest("GET", "/product/11", nil)
-  response := testutils.ExecuteRequest(&a, req)
+  response := testutils.ExecuteJSONRequest(&a, req)
 
-  testutils.CheckResponseCode(t, http.StatusNotFound, response.Code)
+  testutils.CheckResponseCode(t, http.StatusNotFound, response)
 
   var m map[string]string
   json.Unmarshal(response.Body.Bytes(), &m)
@@ -74,9 +74,9 @@ func TestCreateProduct(t *testing.T) {
   payload := []byte(`{"name":"test product","price":11.22,"merchant_id": 1}`)
 
   req, _ := http.NewRequest("POST", "/product", bytes.NewBuffer(payload))
-  response := testutils.ExecuteRequest(&a, req)
+  response := testutils.ExecuteJSONRequest(&a, req)
 
-  testutils.CheckResponseCode(t, http.StatusCreated, response.Code)
+  testutils.CheckResponseCode(t, http.StatusCreated, response)
 
   var m map[string]interface{}
   json.Unmarshal(response.Body.Bytes(), &m)
@@ -104,9 +104,9 @@ func TestGetProduct(t *testing.T) {
   }
 
   req, _ := http.NewRequest("GET", "/product/1", nil)
-  response := testutils.ExecuteRequest(&a, req)
+  response := testutils.ExecuteJSONRequest(&a, req)
 
-  testutils.CheckResponseCode(t, http.StatusOK, response.Code)
+  testutils.CheckResponseCode(t, http.StatusOK, response)
 }
 
 func TestUpdateProduct(t *testing.T) {
@@ -117,16 +117,16 @@ func TestUpdateProduct(t *testing.T) {
   }
 
   req, _ := http.NewRequest("GET", "/product/1", nil)
-  response := testutils.ExecuteRequest(&a, req)
+  response := testutils.ExecuteJSONRequest(&a, req)
   var originalProduct map[string]interface{}
   json.Unmarshal(response.Body.Bytes(), &originalProduct)
 
   payload := []byte(`{"name":"test product - updated name","price":11.22}`)
 
   req, _ = http.NewRequest("PUT", "/product/1", bytes.NewBuffer(payload))
-  response = testutils.ExecuteRequest(&a, req)
+  response = testutils.ExecuteJSONRequest(&a, req)
 
-  testutils.CheckResponseCode(t, http.StatusOK, response.Code)
+  testutils.CheckResponseCode(t, http.StatusOK, response)
 
   var m map[string]interface{}
   json.Unmarshal(response.Body.Bytes(), &m)
@@ -152,15 +152,15 @@ func TestDeleteProduct(t *testing.T) {
   }
 
   req, _ := http.NewRequest("GET", "/product/1", nil)
-  response := testutils.ExecuteRequest(&a, req)
-  testutils.CheckResponseCode(t, http.StatusOK, response.Code)
+  response := testutils.ExecuteJSONRequest(&a, req)
+  testutils.CheckResponseCode(t, http.StatusOK, response)
 
   req, _ = http.NewRequest("DELETE", "/product/1", nil)
-  response = testutils.ExecuteRequest(&a, req)
+  response = testutils.ExecuteJSONRequest(&a, req)
 
-  testutils.CheckResponseCode(t, http.StatusOK, response.Code)
+  testutils.CheckResponseCode(t, http.StatusOK, response)
 
   req, _ = http.NewRequest("GET", "/product/1", nil)
-  response = testutils.ExecuteRequest(&a, req)
-  testutils.CheckResponseCode(t, http.StatusNotFound, response.Code)
+  response = testutils.ExecuteJSONRequest(&a, req)
+  testutils.CheckResponseCode(t, http.StatusNotFound, response)
 }

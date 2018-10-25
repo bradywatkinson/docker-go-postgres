@@ -42,9 +42,9 @@ func TestEmptyTable(t *testing.T) {
   testutils.ClearTable(&a, "merchant")
 
   req, _ := http.NewRequest("GET", "/merchants", nil)
-  response := testutils.ExecuteRequest(&a, req)
+  response := testutils.ExecuteJSONRequest(&a, req)
 
-  testutils.CheckResponseCode(t, http.StatusOK, response.Code)
+  testutils.CheckResponseCode(t, http.StatusOK, response)
 
   if body := response.Body.String(); body != "[]" {
     t.Errorf("Expected an empty array. Got %s", body)
@@ -55,9 +55,9 @@ func TestGetNonExistentMerchant(t *testing.T) {
   testutils.ClearTable(&a, "merchant")
 
   req, _ := http.NewRequest("GET", "/merchant/11", nil)
-  response := testutils.ExecuteRequest(&a, req)
+  response := testutils.ExecuteJSONRequest(&a, req)
 
-  testutils.CheckResponseCode(t, http.StatusNotFound, response.Code)
+  testutils.CheckResponseCode(t, http.StatusNotFound, response)
 
   var m map[string]string
   json.Unmarshal(response.Body.Bytes(), &m)
@@ -72,9 +72,9 @@ func TestCreateMerchant(t *testing.T) {
   payload := []byte(`{"name":"test merchant"}`)
 
   req, _ := http.NewRequest("POST", "/merchant", bytes.NewBuffer(payload))
-  response := testutils.ExecuteRequest(&a, req)
+  response := testutils.ExecuteJSONRequest(&a, req)
 
-  testutils.CheckResponseCode(t, http.StatusCreated, response.Code)
+  testutils.CheckResponseCode(t, http.StatusCreated, response)
 
   var m map[string]interface{}
   json.Unmarshal(response.Body.Bytes(), &m)
@@ -98,9 +98,9 @@ func TestGetMerchant(t *testing.T) {
   }
 
   req, _ := http.NewRequest("GET", "/merchant/1", nil)
-  response := testutils.ExecuteRequest(&a, req)
+  response := testutils.ExecuteJSONRequest(&a, req)
 
-  testutils.CheckResponseCode(t, http.StatusOK, response.Code)
+  testutils.CheckResponseCode(t, http.StatusOK, response)
 }
 
 func TestUpdateMerchant(t *testing.T) {
@@ -111,16 +111,16 @@ func TestUpdateMerchant(t *testing.T) {
   }
 
   req, _ := http.NewRequest("GET", "/merchant/1", nil)
-  response := testutils.ExecuteRequest(&a, req)
+  response := testutils.ExecuteJSONRequest(&a, req)
   var originalMerchant map[string]interface{}
   json.Unmarshal(response.Body.Bytes(), &originalMerchant)
 
   payload := []byte(`{"name":"test merchant - updated name"}`)
 
   req, _ = http.NewRequest("PUT", "/merchant/1", bytes.NewBuffer(payload))
-  response = testutils.ExecuteRequest(&a, req)
+  response = testutils.ExecuteJSONRequest(&a, req)
 
-  testutils.CheckResponseCode(t, http.StatusOK, response.Code)
+  testutils.CheckResponseCode(t, http.StatusOK, response)
 
   var m map[string]interface{}
   json.Unmarshal(response.Body.Bytes(), &m)
@@ -142,15 +142,15 @@ func TestDeleteMerchant(t *testing.T) {
   }
 
   req, _ := http.NewRequest("GET", "/merchant/1", nil)
-  response := testutils.ExecuteRequest(&a, req)
-  testutils.CheckResponseCode(t, http.StatusOK, response.Code)
+  response := testutils.ExecuteJSONRequest(&a, req)
+  testutils.CheckResponseCode(t, http.StatusOK, response)
 
   req, _ = http.NewRequest("DELETE", "/merchant/1", nil)
-  response = testutils.ExecuteRequest(&a, req)
+  response = testutils.ExecuteJSONRequest(&a, req)
 
-  testutils.CheckResponseCode(t, http.StatusOK, response.Code)
+  testutils.CheckResponseCode(t, http.StatusOK, response)
 
   req, _ = http.NewRequest("GET", "/merchant/1", nil)
-  response = testutils.ExecuteRequest(&a, req)
-  testutils.CheckResponseCode(t, http.StatusNotFound, response.Code)
+  response = testutils.ExecuteJSONRequest(&a, req)
+  testutils.CheckResponseCode(t, http.StatusNotFound, response)
 }

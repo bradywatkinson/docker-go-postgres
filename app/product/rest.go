@@ -103,7 +103,7 @@ func putProduct(a *common.App) func(http.ResponseWriter, *http.Request) {
 
     decoder := json.NewDecoder(r.Body)
     if err := decoder.Decode(&c.Schema); err != nil {
-      common.RespondWithError(w, http.StatusBadRequest, "Invalid resquest payload")
+      common.RespondWithError(w, http.StatusBadRequest, "Invalid request payload")
       return
     }
     defer r.Body.Close()

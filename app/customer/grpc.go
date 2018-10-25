@@ -39,8 +39,8 @@ func (s *CustomerServiceInterface) CreateCustomer(ctx context.Context, req *Cust
   return c.Schema, nil
 }
 
-// GetCustomer implements CustomerService.CustomerRequest
-func (s *CustomerServiceInterface) GetCustomer(ctx context.Context, req *CustomerRequest) (*CustomerSchema, error) {
+// GetCustomer implements CustomerService.CustomerQuery
+func (s *CustomerServiceInterface) GetCustomer(ctx context.Context, req *CustomerQuery) (*CustomerSchema, error) {
   testutils.Log(fmt.Sprint("CustomerService.GetCustomer"))
   c := Customer{
     Model: &CustomerModel{ID: int(req.Id)},
@@ -64,7 +64,7 @@ func (s *CustomerServiceInterface) GetCustomer(ctx context.Context, req *Custome
 }
 
 // UpdateCustomer implements CustomerService.UpdateCustomer
-func (s *CustomerServiceInterface) UpdateCustomer(ctx context.Context, req *CustomerRequest) (*CustomerSchema, error) {
+func (s *CustomerServiceInterface) UpdateCustomer(ctx context.Context, req *CustomerQuery) (*CustomerSchema, error) {
   testutils.Log(fmt.Sprint("CustomerService.UpdateCustomer"))
   c := Customer{
     Schema: req.Customer,
@@ -93,7 +93,7 @@ func (s *CustomerServiceInterface) UpdateCustomer(ctx context.Context, req *Cust
 }
 
 // DeleteCustomer implements CustomerService.DeleteCustomer
-func (s *CustomerServiceInterface) DeleteCustomer(ctx context.Context, req *CustomerRequest) (*wrappers.StringValue, error) {
+func (s *CustomerServiceInterface) DeleteCustomer(ctx context.Context, req *CustomerQuery) (*wrappers.StringValue, error) {
   testutils.Log(fmt.Sprint("CustomerService.DeleteCustomer"))
 
   c := Customer{
@@ -111,17 +111,10 @@ func (s *CustomerServiceInterface) DeleteCustomer(ctx context.Context, req *Cust
 }
 
 // GetCustomers implements CustomerService.GetCustomers
-func (s *CustomerServiceInterface) GetCustomers(ctx context.Context, req *CustomersRequest) (*CustomersResponse, error) {
+func (s *CustomerServiceInterface) GetCustomers(ctx context.Context, req *CustomersQuery) (*CustomersResponse, error) {
   testutils.Log(fmt.Sprint("CustomerService.GetCustomers"))
 
   count, start := int(req.Count), int(req.Start)
-
-  if count > 10 || count < 1 {
-    count = 10
-  }
-  if start < 0 {
-    start = 0
-  }
 
   testutils.Log(fmt.Sprintf("{ count: %d, start: %d }", count, start))
 

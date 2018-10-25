@@ -123,8 +123,8 @@ func AddCustomers(a *common.App, count int) ([]int, error) {
   for i := 0; i < count; i++ {
     var id int
     err := a.DB.QueryRow("INSERT INTO customer(first_name, last_name) VALUES($1, $2) RETURNING id",
-      "customer first name "+strconv.Itoa(i),
-      "customer last name "+strconv.Itoa(i),
+      "customerGirstName"+strconv.Itoa(i),
+      "customerLastName"+strconv.Itoa(i),
     ).Scan(&id)
     if err != nil {
       return nil, err

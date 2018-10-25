@@ -6,7 +6,6 @@ import (
   "database/sql"
 )
 
-
 // CustomerModel is used to load/dump from the
 // database customer table
 type CustomerModel struct {

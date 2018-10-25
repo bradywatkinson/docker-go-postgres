@@ -2,6 +2,25 @@
 
 
 [[projects]]
+  digest = "1:320e7ead93de9fd2b0e59b50fd92a4d50c1f8ab455d96bc2eb083267453a9709"
+  name = "github.com/asaskevich/govalidator"
+  packages = ["."]
+  pruneopts = "UT"
+  revision = "ccb8e960c48f04d6935e72476ae4a51028f9e22f"
+  version = "v9"
+
+[[projects]]
+  digest = "1:aa047c900450fea2242fbb449076eb20cea8278f3b15d2db1950a3c8da8e4308"
+  name = "github.com/go-ozzo/ozzo-validation"
+  packages = [
+    ".",
+    "is",
+  ]
+  pruneopts = "UT"
+  revision = "106681dbb37bfa3e7683c4c8129cb7f5925ea3e9"
+  version = "v3.5.0"
+
+[[projects]]
   branch = "master"
   digest = "1:22da48c9ba4965f81ce46ad4d36f2e55001c5f7efc4fee544110776ea09ef487"
   name = "github.com/golang/protobuf"
@@ -42,11 +61,12 @@
   version = "v1.6.2"
 
 [[projects]]
-  digest = "1:2384694df85d3b50e1b5e7357a06bb6094b7a65a5bf06d796aec9bbc2ab4df4a"
+  digest = "1:d264e8b2b9a26a888aba09cf6d9d998b30b40b609e5ac608b7fbf4bfe5fc4ba0"
   name = "github.com/grpc-ecosystem/go-grpc-middleware"
   packages = [
     ".",
     "recovery",
+    "validator",
   ]
   pruneopts = "UT"
   revision = "c250d6563d4d4c20252cd865923440e829844f4e"
@@ -70,6 +90,14 @@
   ]
   pruneopts = "UT"
   revision = "90697d60dd844d5ef6ff15135d0203f65d2f53b8"
+
+[[projects]]
+  digest = "1:3d1e4d4e803048f281490ae5d66b17506e43b73e9aa2c29e56122f04fd7bdb7e"
+  name = "github.com/mholt/binding"
+  packages = ["."]
+  pruneopts = "UT"
+  revision = "60500d44429b9606cbbba45967fc45aae3e1f87c"
+  source = "https://github.com/bradywatkinson/binding.git"
 
 [[projects]]
   branch = "master"
@@ -158,14 +186,18 @@
   analyzer-name = "dep"
   analyzer-version = 1
   input-imports = [
+    "github.com/go-ozzo/ozzo-validation",
+    "github.com/go-ozzo/ozzo-validation/is",
     "github.com/golang/protobuf/proto",
     "github.com/golang/protobuf/ptypes/wrappers",
     "github.com/gorilla/handlers",
     "github.com/gorilla/mux",
     "github.com/grpc-ecosystem/go-grpc-middleware",
     "github.com/grpc-ecosystem/go-grpc-middleware/recovery",
+    "github.com/grpc-ecosystem/go-grpc-middleware/validator",
     "github.com/jinzhu/copier",
     "github.com/lib/pq",
+    "github.com/mholt/binding",
     "golang.org/x/net/context",
     "google.golang.org/grpc",
     "google.golang.org/grpc/codes",

@@ -6,7 +6,8 @@ import (
   "database/sql"
 )
 
-
+// MerchantModel is used to load/dump from the
+// database merchant table
 type MerchantModel struct {
   ID    int
   Name  string

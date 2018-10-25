@@ -6,6 +6,8 @@ import (
   "database/sql"
 )
 
+// ProductModel is used to load/dump from the
+// database product table
 type ProductModel struct {
   ID         int
   Name       string

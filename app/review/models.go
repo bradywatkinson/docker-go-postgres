@@ -6,7 +6,8 @@ import (
   "database/sql"
 )
 
-
+// ReviewModel is used to load/dump from the
+// database review table
 type ReviewModel struct {
   ID         int
   Rating     int

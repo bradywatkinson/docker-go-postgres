@@ -6,10 +6,10 @@ import (
   "database/sql"
   "net/http"
   "strconv"
-  "encoding/json"
   "fmt"
 
   "github.com/gorilla/mux"
+  "github.com/mholt/binding"
 
   "app/common"
   "app/test_utils"
@@ -19,13 +19,14 @@ func postCustomer(a *common.App) func(http.ResponseWriter, *http.Request) {
   return func(w http.ResponseWriter, r *http.Request) {
     testutils.Log(fmt.Sprint("POST /customer:"))
 
-    c := Customer{}
-    decoder := json.NewDecoder(r.Body)
-    if err := decoder.Decode(&c.Schema); err != nil {
+    c := Customer{
+      Schema: &CustomerSchema{},
+    }
+
+    if err := binding.Bind(r, c.Schema); err != nil {
       common.RespondWithError(w, http.StatusBadRequest, fmt.Sprintf("Invalid request payload: %s", err))
       return
     }
-    defer r.Body.Close()
 
     testutils.Log(fmt.Sprintf("%#v", c.Schema))
 
@@ -50,6 +51,7 @@ func getCustomer(a *common.App) func(http.ResponseWriter, *http.Request) {
     id, err := strconv.Atoi(vars["id"])
     if err != nil {
       common.RespondWithError(w, http.StatusBadRequest, "Invalid Customer ID")
+      return
     }
 
     testutils.Log(fmt.Sprintf("{ id: %d }", id))
@@ -86,9 +88,11 @@ func putCustomer(a *common.App) func(http.ResponseWriter, *http.Request) {
       return
     }
 
+    testutils.Log(fmt.Sprintf("{ id: %d }", id))
+
     c := Customer{
       Model: &CustomerModel{ID: id},
-      Schema: nil,
+      Schema: &CustomerSchema{},
     }
 
     if err := c.Model.readCustomer(a.DB); err != nil {
@@ -101,9 +105,10 @@ func putCustomer(a *common.App) func(http.ResponseWriter, *http.Request) {
       return
     }
 
-    decoder := json.NewDecoder(r.Body)
-    if err := decoder.Decode(&c.Schema); err != nil {
-      common.RespondWithError(w, http.StatusBadRequest, "Invalid resquest payload")
+    testutils.Log(fmt.Sprintf("Customer: %#v", c.Model))
+
+    if err := binding.Bind(r, c.Schema); err != nil {
+      common.RespondWithError(w, http.StatusBadRequest, "Invalid request payload")
       return
     }
     defer r.Body.Close()
@@ -153,21 +158,17 @@ func deleteCustomer(a *common.App) func(http.ResponseWriter, *http.Request) {
 func getCustomers(a *common.App) func(http.ResponseWriter, *http.Request) {
   return func(w http.ResponseWriter, r *http.Request) {
     testutils.Log(fmt.Sprint("GET /customers"))
-    count, _ := strconv.Atoi(r.FormValue("count"))
-    start, _ := strconv.Atoi(r.FormValue("start"))
-
-    if count > 10 || count < 1 {
-      count = 10
-    }
-    if start < 0 {
-      start = 0
+    q := &CustomersQuery{}
+    if err := binding.Bind(r, q); err != nil {
+      common.RespondWithError(w, http.StatusBadRequest, "Invalid request payload")
+      return
     }
 
-    testutils.Log(fmt.Sprintf("{ count: %d, start: %d }", count, start))
+    testutils.Log(fmt.Sprintf("{ count: %d, start: %d }", q.Count, q.Start))
 
-    customers, err := readCustomers(a.DB, start, count)
+    customers, err := readCustomers(a.DB, int(q.Start), int(q.Count))
     if err != nil {
-      common.RespondWithError(w, http.StatusInternalServerError, err.Error())
+      common.RespondWithError(w, http.StatusInternalServerError,   err.Error())
       return
     }
 

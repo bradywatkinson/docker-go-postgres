@@ -13,17 +13,17 @@ service CustomerService {
   // Create a customer
   rpc CreateCustomer (CustomerSchema) returns (CustomerSchema) {}
   // Get a customer by id
-  rpc GetCustomer (CustomerRequest) returns (CustomerSchema) {}
+  rpc GetCustomer (CustomerQuery) returns (CustomerSchema) {}
   // Update a customer by id
-  rpc UpdateCustomer (CustomerRequest) returns (CustomerSchema) {}
+  rpc UpdateCustomer (CustomerQuery) returns (CustomerSchema) {}
   // Delete a customer by id
-  rpc DeleteCustomer (CustomerRequest) returns (google.protobuf.StringValue) {}
+  rpc DeleteCustomer (CustomerQuery) returns (google.protobuf.StringValue) {}
   // GetCustomers gets a list of customers by start and count
-  rpc GetCustomers (CustomersRequest) returns (CustomersResponse) {}
+  rpc GetCustomers (CustomersQuery) returns (CustomersResponse) {}
 }
 
-// CustomerRequest
-message CustomerRequest {
+// CustomerQuery
+message CustomerQuery {
   int32 id = 1;
   CustomerSchema customer = 2;
 }
@@ -35,8 +35,8 @@ message CustomerSchema {
   string last_name = 3;
 }
 
-// CustomersRequest describes a request to get count customers starting at id start
-message CustomersRequest {
+// CustomersQuery describes a request to get count customers starting at id start
+message CustomersQuery {
   int32 count = 1;
   int32 start = 2;
 }

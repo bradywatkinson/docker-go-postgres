@@ -44,7 +44,7 @@ func TestEmptyTable(t *testing.T) {
   req, _ := http.NewRequest("GET", "/customers", nil)
   response := testutils.ExecuteRequest(&a, req)
 
-  testutils.CheckResponseCode(t, http.StatusOK, response.Code)
+  testutils.CheckResponseCode(t, http.StatusOK, response)
 
   if body := response.Body.String(); body != "[]" {
     t.Errorf("Expected an empty array. Got %s", body)
@@ -55,9 +55,9 @@ func TestGetNonExistentcustomer(t *testing.T) {
   testutils.ClearTable(&a, "customer")
 
   req, _ := http.NewRequest("GET", "/customer/11", nil)
-  response := testutils.ExecuteRequest(&a, req)
+  response := testutils.ExecuteJSONRequest(&a, req)
 
-  testutils.CheckResponseCode(t, http.StatusNotFound, response.Code)
+  testutils.CheckResponseCode(t, http.StatusNotFound, response)
 
   var m map[string]string
   json.Unmarshal(response.Body.Bytes(), &m)
@@ -69,22 +69,22 @@ func TestGetNonExistentcustomer(t *testing.T) {
 func TestCreateCustomer(t *testing.T) {
   testutils.ClearTable(&a, "customer")
 
-  payload := []byte(`{"first_name":"test first name","last_name":"test last name"}`)
+  payload := []byte(`{"first_name":"testFirstName","last_name":"testLastName"}`)
 
   req, _ := http.NewRequest("POST", "/customer", bytes.NewBuffer(payload))
-  response := testutils.ExecuteRequest(&a, req)
+  response := testutils.ExecuteJSONRequest(&a, req)
 
-  testutils.CheckResponseCode(t, http.StatusCreated, response.Code)
+  testutils.CheckResponseCode(t, http.StatusCreated, response)
 
   var m map[string]interface{}
   json.Unmarshal(response.Body.Bytes(), &m)
 
-  if m["first_name"] != "test first name" {
-    t.Errorf("Expected customer name to be 'test first customer'. Got '%v'", m["first_name"])
+  if m["first_name"] != "testFirstName" {
+    t.Errorf("Expected customer first to be 'testFirstName'. Got '%v'", m["first_name"])
   }
 
-  if m["last_name"] != "test last name" {
-    t.Errorf("Expected customer first_name to be 'test last name'. Got '%v'", m["last_name"])
+  if m["last_name"] != "testLastName" {
+    t.Errorf("Expected customer last to be 'testLastName'. Got '%v'", m["last_name"])
   }
 
   // the id is compared to 1.0 because JSON unmarshaling converts numbers to
@@ -102,9 +102,9 @@ func TestGetCustomer(t *testing.T) {
   }
 
   req, _ := http.NewRequest("GET", "/customer/1", nil)
-  response := testutils.ExecuteRequest(&a, req)
+  response := testutils.ExecuteJSONRequest(&a, req)
 
-  testutils.CheckResponseCode(t, http.StatusOK, response.Code)
+  testutils.CheckResponseCode(t, http.StatusOK, response)
 }
 
 func TestUpdateCustomer(t *testing.T) {
@@ -115,16 +115,16 @@ func TestUpdateCustomer(t *testing.T) {
   }
 
   req, _ := http.NewRequest("GET", "/customer/1", nil)
-  response := testutils.ExecuteRequest(&a, req)
+  response := testutils.ExecuteJSONRequest(&a, req)
   var originalcustomer map[string]interface{}
   json.Unmarshal(response.Body.Bytes(), &originalcustomer)
 
-  payload := []byte(`{"first_name":"test customer - updated name"}`)
+  payload := []byte(`{"first_name":"testCustomerUpdatedName"}`)
 
   req, _ = http.NewRequest("PUT", "/customer/1", bytes.NewBuffer(payload))
-  response = testutils.ExecuteRequest(&a, req)
+  response = testutils.ExecuteJSONRequest(&a, req)
 
-  testutils.CheckResponseCode(t, http.StatusOK, response.Code)
+  testutils.CheckResponseCode(t, http.StatusOK, response)
 
   var m map[string]interface{}
   json.Unmarshal(response.Body.Bytes(), &m)
@@ -134,7 +134,7 @@ func TestUpdateCustomer(t *testing.T) {
   }
 
   if m["first_name"] == originalcustomer["first_name"] {
-    t.Errorf("Expected the name to change from '%v' to '%v'. Got '%v'", originalcustomer["first_name"], m["first_name"], m["first_name"])
+    t.Errorf("Expected the name to change from '%v' to 'testCustomerUpdatedName'. Got '%v'", originalcustomer["first_name"], m["first_name"])
   }
 }
 
@@ -146,16 +146,16 @@ func TestDeleteCustomer(t *testing.T) {
   }
 
   req, _ := http.NewRequest("GET", "/customer/1", nil)
-  response := testutils.ExecuteRequest(&a, req)
-  testutils.CheckResponseCode(t, http.StatusOK, response.Code)
+  response := testutils.ExecuteJSONRequest(&a, req)
+  testutils.CheckResponseCode(t, http.StatusOK, response)
 
   req, _ = http.NewRequest("DELETE", "/customer/1", nil)
-  response = testutils.ExecuteRequest(&a, req)
+  response = testutils.ExecuteJSONRequest(&a, req)
 
-  testutils.CheckResponseCode(t, http.StatusOK, response.Code)
+  testutils.CheckResponseCode(t, http.StatusOK, response)
 
   req, _ = http.NewRequest("GET", "/customer/1", nil)
-  response = testutils.ExecuteRequest(&a, req)
-  testutils.CheckResponseCode(t, http.StatusNotFound, response.Code)
+  response = testutils.ExecuteJSONRequest(&a, req)
+  testutils.CheckResponseCode(t, http.StatusNotFound, response)
 }
 
