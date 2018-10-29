@@ -10,7 +10,6 @@ import (
 
   "github.com/gorilla/mux"
   "github.com/mholt/binding"
-  log "github.com/sirupsen/logrus"
 
   "app/common"
 )
@@ -27,8 +26,6 @@ func postMerchant(a *common.App) func(http.ResponseWriter, *http.Request) {
       return
     }
 
-    log.Debug(fmt.Sprintf("Merchant: %#v", m.Schema))
-
     m.copySchema()
 
     if err := m.Model.createMerchant(a.DB); err != nil {
@@ -38,7 +35,6 @@ func postMerchant(a *common.App) func(http.ResponseWriter, *http.Request) {
 
     m.copyModel()
 
-    log.Debug(fmt.Sprintf("Response:\n%#v", m.Schema))
     common.RespondWithJSON(w, http.StatusCreated, m.Schema)
   }
 }
@@ -51,8 +47,6 @@ func getMerchant(a *common.App) func(http.ResponseWriter, *http.Request) {
       common.RespondWithError(w, http.StatusBadRequest, "Invalid Merchant ID")
       return
     }
-
-    log.Debug(fmt.Sprintf("{ id: %d }", id))
 
     m := Merchant{
       Model: &MerchantModel{ID: id},
@@ -69,8 +63,6 @@ func getMerchant(a *common.App) func(http.ResponseWriter, *http.Request) {
     }
 
     m.copyModel()
-
-    log.Debug(fmt.Sprintf("Response:\n%#v", m.Schema))
 
     common.RespondWithJSON(w, http.StatusOK, m.Schema)
   }
@@ -85,8 +77,6 @@ func putMerchant(a *common.App) func(http.ResponseWriter, *http.Request) {
       return
     }
 
-    log.Debug(fmt.Sprintf("{ id: %d }", id))
-
     m := Merchant{
       Model: &MerchantModel{ID: id},
       Schema: &MerchantSchema{},
@@ -101,8 +91,6 @@ func putMerchant(a *common.App) func(http.ResponseWriter, *http.Request) {
       }
       return
     }
-
-    log.Debug(fmt.Sprintf("Merchant: %#v", m.Model))
 
     if err := binding.Bind(req, m.Schema); err != nil {
       common.RespondWithError(w, http.StatusBadRequest, fmt.Sprintf("Invalid request payload: %v", err.Error()))
@@ -119,8 +107,6 @@ func putMerchant(a *common.App) func(http.ResponseWriter, *http.Request) {
 
     m.copyModel()
 
-    log.Debug(fmt.Sprintf("Response:\n%#v", m.Schema))
-
     common.RespondWithJSON(w, http.StatusOK, m.Schema)
   }
 }
@@ -134,8 +120,6 @@ func deleteMerchant(a *common.App) func(http.ResponseWriter, *http.Request) {
       return
     }
 
-    log.Debug(fmt.Sprintf("{ id: %d }", id))
-
     m := Merchant{
       Model: &MerchantModel{ID: id},
       Schema: nil,
@@ -144,7 +128,6 @@ func deleteMerchant(a *common.App) func(http.ResponseWriter, *http.Request) {
       common.RespondWithError(w, http.StatusInternalServerError, err.Error())
       return
     }
-
 
     common.RespondWithJSON(w, http.StatusOK, map[string]string{"result": "success"})
   }
@@ -158,15 +141,11 @@ func getMerchants(a *common.App) func(http.ResponseWriter, *http.Request) {
       return
     }
 
-    log.Debug(fmt.Sprintf("{ count: %d, start: %d }", q.Count, q.Start))
-
     merchants, err := readMerchants(a.DB, int(q.Start), int(q.Count))
     if err != nil {
       common.RespondWithError(w, http.StatusInternalServerError, err.Error())
       return
     }
-
-    log.Debug(fmt.Sprintf("Response:\n%#v", merchants))
 
     common.RespondWithJSON(w, http.StatusOK, merchants)
   }

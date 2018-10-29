@@ -10,7 +10,6 @@ import (
 
   "github.com/gorilla/mux"
   "github.com/mholt/binding"
-  log "github.com/sirupsen/logrus"
 
   "app/common"
 )
@@ -27,8 +26,6 @@ func postCustomer(a *common.App) func(http.ResponseWriter, *http.Request) {
       return
     }
 
-    log.Debug(fmt.Sprintf("Customer: %#v", c.Schema))
-
     c.copySchema()
 
     if err := c.Model.createCustomer(a.DB); err != nil {
@@ -38,7 +35,6 @@ func postCustomer(a *common.App) func(http.ResponseWriter, *http.Request) {
 
     c.copyModel()
 
-    log.Debug(fmt.Sprintf("Response:\n%#v", c.Schema))
     common.RespondWithJSON(w, http.StatusCreated, c.Schema)
   }
 }
@@ -51,8 +47,6 @@ func getCustomer(a *common.App) func(http.ResponseWriter, *http.Request) {
       common.RespondWithError(w, http.StatusBadRequest, "Invalid Customer ID")
       return
     }
-
-    log.Debug(fmt.Sprintf("{ id: %d }", id))
 
     c := Customer{
       Model: &CustomerModel{ID: id},
@@ -69,8 +63,6 @@ func getCustomer(a *common.App) func(http.ResponseWriter, *http.Request) {
     }
 
     c.copyModel()
-
-    log.Debug(fmt.Sprintf("Response:\n%#v", c.Schema))
 
     common.RespondWithJSON(w, http.StatusOK, c.Schema)
   }
@@ -85,8 +77,6 @@ func putCustomer(a *common.App) func(http.ResponseWriter, *http.Request) {
       return
     }
 
-    log.Debug(fmt.Sprintf("{ id: %d }", id))
-
     c := Customer{
       Model: &CustomerModel{ID: id},
       Schema: &CustomerSchema{},
@@ -101,8 +91,6 @@ func putCustomer(a *common.App) func(http.ResponseWriter, *http.Request) {
       }
       return
     }
-
-    log.Debug(fmt.Sprintf("Customer: %#v", c.Model))
 
     if err := binding.Bind(req, c.Schema); err != nil {
       common.RespondWithError(w, http.StatusBadRequest, fmt.Sprintf("Invalid request payload: %v", err.Error()))
@@ -119,8 +107,6 @@ func putCustomer(a *common.App) func(http.ResponseWriter, *http.Request) {
 
     c.copyModel()
 
-    log.Debug(fmt.Sprintf("Response:\n%#v", c.Schema))
-
     common.RespondWithJSON(w, http.StatusOK, c.Schema)
   }
 }
@@ -134,8 +120,6 @@ func deleteCustomer(a *common.App) func(http.ResponseWriter, *http.Request) {
       return
     }
 
-    log.Debug(fmt.Sprintf("{ id: %d }", id))
-
     c := Customer{
       Model: &CustomerModel{ID: id},
       Schema: nil,
@@ -144,7 +128,6 @@ func deleteCustomer(a *common.App) func(http.ResponseWriter, *http.Request) {
       common.RespondWithError(w, http.StatusInternalServerError, err.Error())
       return
     }
-
 
     common.RespondWithJSON(w, http.StatusOK, map[string]string{"result": "success"})
   }
@@ -158,15 +141,11 @@ func getCustomers(a *common.App) func(http.ResponseWriter, *http.Request) {
       return
     }
 
-    log.Debug(fmt.Sprintf("{ count: %d, start: %d }", q.Count, q.Start))
-
     customers, err := readCustomers(a.DB, int(q.Start), int(q.Count))
     if err != nil {
       common.RespondWithError(w, http.StatusInternalServerError, err.Error())
       return
     }
-
-    log.Debug(fmt.Sprintf("Response:\n%#v", customers))
 
     common.RespondWithJSON(w, http.StatusOK, customers)
   }

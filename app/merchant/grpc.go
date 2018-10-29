@@ -5,12 +5,10 @@ package merchant
 import (
   "database/sql"
   "context"
-  "fmt"
 
   "google.golang.org/grpc/codes"
   "google.golang.org/grpc/status"
   wrappers "github.com/golang/protobuf/ptypes/wrappers"
-  log "github.com/sirupsen/logrus"
 
   "app/common"
 )
@@ -26,8 +24,6 @@ func (s *MerchantServiceInterface) CreateMerchant(ctx context.Context, req *Merc
     Schema: req,
     Model: nil,
   }
-
-  log.Debug(fmt.Sprintf("Merchant: %#v", m.Schema))
 
   m.copySchema()
 
@@ -85,7 +81,6 @@ func (s *MerchantServiceInterface) UpdateMerchant(ctx context.Context, req *Merc
 
   m.copyModel()
 
-  log.Debug(fmt.Sprintf("Response:\n%#v", m.Schema))
   return m.Schema, nil
 }
 
@@ -109,8 +104,6 @@ func (s *MerchantServiceInterface) DeleteMerchant(ctx context.Context, req *Merc
 func (s *MerchantServiceInterface) GetMerchants(ctx context.Context, req *MerchantsQuery) (*MerchantsResponse, error) {
 
   count, start := int(req.Count), int(req.Start)
-
-  log.Debug(fmt.Sprintf("{ count: %d, start: %d }", count, start))
 
   merchants, err := readMerchants(s.app.DB, start, count)
   if err != nil {

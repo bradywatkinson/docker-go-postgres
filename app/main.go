@@ -69,7 +69,7 @@ func main() {
 
   lis, err := net.Listen("tcp", addr)
   if err != nil {
-    panic(err)
+    log.Panic(err)
   }
 
   log.Fatal(srv.Serve(tls.NewListener(lis, srv.TLSConfig)))

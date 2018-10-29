@@ -3,12 +3,10 @@ package review
 import (
   "database/sql"
   "context"
-  "fmt"
 
   "google.golang.org/grpc/codes"
   "google.golang.org/grpc/status"
   wrappers "github.com/golang/protobuf/ptypes/wrappers"
-  log "github.com/sirupsen/logrus"
 
   "app/common"
 )
@@ -24,8 +22,6 @@ func (s *ReviewServiceInterface) CreateReview(ctx context.Context, req *ReviewSc
     Schema: req,
     Model: nil,
   }
-
-  log.Debug(fmt.Sprintf("Review: %#v", r.Schema))
 
   r.copySchema()
 
@@ -83,7 +79,6 @@ func (s *ReviewServiceInterface) UpdateReview(ctx context.Context, req *ReviewQu
 
   r.copyModel()
 
-  log.Debug(fmt.Sprintf("Response:\n%#v", r.Schema))
   return r.Schema, nil
 }
 
@@ -107,8 +102,6 @@ func (s *ReviewServiceInterface) DeleteReview(ctx context.Context, req *ReviewQu
 func (s *ReviewServiceInterface) GetReviews(ctx context.Context, req *ReviewsQuery) (*ReviewsResponse, error) {
 
   count, start := int(req.Count), int(req.Start)
-
-  log.Debug(fmt.Sprintf("{ count: %d, start: %d }", count, start))
 
   reviews, err := readReviews(s.app.DB, start, count)
   if err != nil {

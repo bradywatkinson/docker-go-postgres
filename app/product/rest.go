@@ -10,7 +10,6 @@ import (
 
   "github.com/gorilla/mux"
   "github.com/mholt/binding"
-  log "github.com/sirupsen/logrus"
 
   "app/common"
 )
@@ -27,8 +26,6 @@ func postProduct(a *common.App) func(http.ResponseWriter, *http.Request) {
       return
     }
 
-    log.Debug(fmt.Sprintf("Product: %#v", p.Schema))
-
     p.copySchema()
 
     if err := p.Model.createProduct(a.DB); err != nil {
@@ -38,7 +35,6 @@ func postProduct(a *common.App) func(http.ResponseWriter, *http.Request) {
 
     p.copyModel()
 
-    log.Debug(fmt.Sprintf("Response:\n%#v", p.Schema))
     common.RespondWithJSON(w, http.StatusCreated, p.Schema)
   }
 }
@@ -51,8 +47,6 @@ func getProduct(a *common.App) func(http.ResponseWriter, *http.Request) {
       common.RespondWithError(w, http.StatusBadRequest, "Invalid Product ID")
       return
     }
-
-    log.Debug(fmt.Sprintf("{ id: %d }", id))
 
     p := Product{
       Model: &ProductModel{ID: id},
@@ -69,8 +63,6 @@ func getProduct(a *common.App) func(http.ResponseWriter, *http.Request) {
     }
 
     p.copyModel()
-
-    log.Debug(fmt.Sprintf("Response:\n%#v", p.Schema))
 
     common.RespondWithJSON(w, http.StatusOK, p.Schema)
   }
@@ -100,8 +92,6 @@ func putProduct(a *common.App) func(http.ResponseWriter, *http.Request) {
       return
     }
 
-    log.Debug(fmt.Sprintf("Product: %#v", p.Model))
-
     if err := binding.Bind(req, p.Schema); err != nil {
       common.RespondWithError(w, http.StatusBadRequest, fmt.Sprintf("Invalid request payload: %v", err.Error()))
       return
@@ -117,8 +107,6 @@ func putProduct(a *common.App) func(http.ResponseWriter, *http.Request) {
 
     p.copyModel()
 
-    log.Debug(fmt.Sprintf("Response:\n%#v", p.Schema))
-
     common.RespondWithJSON(w, http.StatusOK, p.Schema)
   }
 }
@@ -132,8 +120,6 @@ func deleteProduct(a *common.App) func(http.ResponseWriter, *http.Request) {
       return
     }
 
-    log.Debug(fmt.Sprintf("{ id: %d }", id))
-
     p := Product{
       Model: &ProductModel{ID: id},
       Schema: nil,
@@ -142,7 +128,6 @@ func deleteProduct(a *common.App) func(http.ResponseWriter, *http.Request) {
       common.RespondWithError(w, http.StatusInternalServerError, err.Error())
       return
     }
-
 
     common.RespondWithJSON(w, http.StatusOK, map[string]string{"result": "success"})
   }
@@ -156,15 +141,11 @@ func getProducts(a *common.App) func(http.ResponseWriter, *http.Request) {
       return
     }
 
-    log.Debug(fmt.Sprintf("{ count: %d, start: %d }", q.Count, q.Start))
-
     products, err := readProducts(a.DB, int(q.Start), int(q.Count))
     if err != nil {
       common.RespondWithError(w, http.StatusInternalServerError, err.Error())
       return
     }
-
-    log.Debug(fmt.Sprintf("Response:\n%#v", products))
 
     common.RespondWithJSON(w, http.StatusOK, products)
   }

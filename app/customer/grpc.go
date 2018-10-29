@@ -3,12 +3,10 @@ package customer
 import (
   "database/sql"
   "context"
-  "fmt"
 
   "google.golang.org/grpc/codes"
   "google.golang.org/grpc/status"
   wrappers "github.com/golang/protobuf/ptypes/wrappers"
-  log "github.com/sirupsen/logrus"
 
   "app/common"
 )
@@ -24,8 +22,6 @@ func (s *CustomerServiceInterface) CreateCustomer(ctx context.Context, req *Cust
     Schema: req,
     Model: nil,
   }
-
-  log.Debug(fmt.Sprintf("Customer: %#v", c.Schema))
 
   c.copySchema()
 
@@ -83,7 +79,6 @@ func (s *CustomerServiceInterface) UpdateCustomer(ctx context.Context, req *Cust
 
   c.copyModel()
 
-  log.Debug(fmt.Sprintf("Response:\n%#v", c.Schema))
   return c.Schema, nil
 }
 
@@ -107,8 +102,6 @@ func (s *CustomerServiceInterface) DeleteCustomer(ctx context.Context, req *Cust
 func (s *CustomerServiceInterface) GetCustomers(ctx context.Context, req *CustomersQuery) (*CustomersResponse, error) {
 
   count, start := int(req.Count), int(req.Start)
-
-  log.Debug(fmt.Sprintf("{ count: %d, start: %d }", count, start))
 
   customers, err := readCustomers(s.app.DB, start, count)
   if err != nil {

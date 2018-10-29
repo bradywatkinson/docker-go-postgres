@@ -5,12 +5,10 @@ package product
 import (
   "database/sql"
   "context"
-  "fmt"
 
   "google.golang.org/grpc/codes"
   "google.golang.org/grpc/status"
   wrappers "github.com/golang/protobuf/ptypes/wrappers"
-  log "github.com/sirupsen/logrus"
 
   "app/common"
 )
@@ -26,8 +24,6 @@ func (s *ProductServiceInterface) CreateProduct(ctx context.Context, req *Produc
     Schema: req,
     Model: nil,
   }
-
-  log.Debug(fmt.Sprintf("Product: %#v", p.Schema))
 
   p.copySchema()
 
@@ -85,7 +81,6 @@ func (s *ProductServiceInterface) UpdateProduct(ctx context.Context, req *Produc
 
   p.copyModel()
 
-  log.Debug(fmt.Sprintf("Response:\n%#v", p.Schema))
   return p.Schema, nil
 }
 
@@ -109,8 +104,6 @@ func (s *ProductServiceInterface) DeleteProduct(ctx context.Context, req *Produc
 func (s *ProductServiceInterface) GetProducts(ctx context.Context, req *ProductsQuery) (*ProductsResponse, error) {
 
   count, start := int(req.Count), int(req.Start)
-
-  log.Debug(fmt.Sprintf("{ count: %d, start: %d }", count, start))
 
   products, err := readProducts(s.app.DB, start, count)
   if err != nil {
