@@ -8,9 +8,9 @@ import (
   "google.golang.org/grpc/codes"
   "google.golang.org/grpc/status"
   wrappers "github.com/golang/protobuf/ptypes/wrappers"
+  log "github.com/sirupsen/logrus"
 
   "app/common"
-  "app/test_utils"
 )
 
 // CustomerServiceInterface is implemented by CustomerService
@@ -20,13 +20,12 @@ type CustomerServiceInterface struct{
 
 // CreateCustomer implements CustomerService.CreateCustomer
 func (s *CustomerServiceInterface) CreateCustomer(ctx context.Context, req *CustomerSchema) (*CustomerSchema, error) {
-  testutils.Log(fmt.Sprint("CustomerService.CreateCustomer"))
   c := Customer{
     Schema: req,
     Model: nil,
   }
 
-  testutils.Log(fmt.Sprintf("Customer: %#v", c.Schema))
+  log.Debug(fmt.Sprintf("Customer: %#v", c.Schema))
 
   c.copySchema()
 
@@ -36,14 +35,11 @@ func (s *CustomerServiceInterface) CreateCustomer(ctx context.Context, req *Cust
 
   c.copyModel()
 
-  testutils.Log(fmt.Sprintf("Response:\n%#v", c.Schema))
-
   return c.Schema, nil
 }
 
 // GetCustomer implements CustomerService.CustomerQuery
 func (s *CustomerServiceInterface) GetCustomer(ctx context.Context, req *CustomerQuery) (*CustomerSchema, error) {
-  testutils.Log(fmt.Sprint("CustomerService.GetCustomer"))
   c := Customer{
     Model: &CustomerModel{ID: int(req.Id)},
     Schema: nil,
@@ -60,14 +56,11 @@ func (s *CustomerServiceInterface) GetCustomer(ctx context.Context, req *Custome
 
   c.copyModel()
 
-  testutils.Log(fmt.Sprintf("Response:\n%#v", c.Schema))
-
   return c.Schema, nil
 }
 
 // UpdateCustomer implements CustomerService.UpdateCustomer
 func (s *CustomerServiceInterface) UpdateCustomer(ctx context.Context, req *CustomerQuery) (*CustomerSchema, error) {
-  testutils.Log(fmt.Sprint("CustomerService.UpdateCustomer"))
   c := Customer{
     Schema: req.Customer,
     Model: &CustomerModel{ID: int(req.Id)},
@@ -90,13 +83,12 @@ func (s *CustomerServiceInterface) UpdateCustomer(ctx context.Context, req *Cust
 
   c.copyModel()
 
-  testutils.Log(fmt.Sprintf("Response:\n%#v", c.Schema))
+  log.Debug(fmt.Sprintf("Response:\n%#v", c.Schema))
   return c.Schema, nil
 }
 
 // DeleteCustomer implements CustomerService.DeleteCustomer
 func (s *CustomerServiceInterface) DeleteCustomer(ctx context.Context, req *CustomerQuery) (*wrappers.StringValue, error) {
-  testutils.Log(fmt.Sprint("CustomerService.DeleteCustomer"))
 
   c := Customer{
     Model: &CustomerModel{ID: int(req.Id)},
@@ -106,7 +98,6 @@ func (s *CustomerServiceInterface) DeleteCustomer(ctx context.Context, req *Cust
     return nil, status.Error(codes.Internal, err.Error())
   }
 
-  testutils.Log(fmt.Sprint("Response:\n{ value: \"success\" }"))
 
   m := &wrappers.StringValue{Value: "success"}
   return m, nil
@@ -114,11 +105,10 @@ func (s *CustomerServiceInterface) DeleteCustomer(ctx context.Context, req *Cust
 
 // GetCustomers implements CustomerService.GetCustomers
 func (s *CustomerServiceInterface) GetCustomers(ctx context.Context, req *CustomersQuery) (*CustomersResponse, error) {
-  testutils.Log(fmt.Sprint("CustomerService.GetCustomers"))
 
   count, start := int(req.Count), int(req.Start)
 
-  testutils.Log(fmt.Sprintf("{ count: %d, start: %d }", count, start))
+  log.Debug(fmt.Sprintf("{ count: %d, start: %d }", count, start))
 
   customers, err := readCustomers(s.app.DB, start, count)
   if err != nil {
@@ -134,8 +124,6 @@ func (s *CustomerServiceInterface) GetCustomers(ctx context.Context, req *Custom
     copyModel(&c, tmp)
     res.Customers = append(res.Customers, tmp)
   }
-
-  testutils.Log(fmt.Sprintf("Response:\n%#v", customers))
 
   return res, nil
 }

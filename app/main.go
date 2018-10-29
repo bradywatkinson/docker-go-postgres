@@ -13,7 +13,6 @@ import (
 
   grpc "google.golang.org/grpc"
   "google.golang.org/grpc/reflection"
-  "github.com/gorilla/handlers"
 
   "app/common"
   "app/certs"
@@ -23,12 +22,17 @@ import (
   "app/review"
 )
 
+func init() {
+  common.InitializeLogger()
+}
+
 func main() {
   addr := fmt.Sprintf(":%s", os.Getenv("PORT"))
 
   keyPair, certPool := certs.GetCert()
 
   a := common.App{}
+
   connectionString :=
     fmt.Sprintf("sslmode=disable host=%s user=%s password=%s dbname=%s",
       os.Getenv("APP_DB_HOST"),
@@ -38,12 +42,13 @@ func main() {
   a.InitializeDB(connectionString)
 
   // register HTTP handlers
-  a.InitializeRouter()
+  n := a.InitializeRouter()
   customer.InitializeREST(&a)
   merchant.InitializeREST(&a)
   product.InitializeREST(&a)
   review.InitializeREST(&a)
-  http.Handle("/", handlers.RecoveryHandler()(a.Router))
+  n.UseHandler(a.Router)
+  http.Handle("/", n)
 
   // register GRPC handlers
   a.InitializeGRPC(certPool, addr)

@@ -10,9 +10,9 @@ import (
   "google.golang.org/grpc/codes"
   "google.golang.org/grpc/status"
   wrappers "github.com/golang/protobuf/ptypes/wrappers"
+  log "github.com/sirupsen/logrus"
 
   "app/common"
-  "app/test_utils"
 )
 
 // MerchantServiceInterface is implemented by MerchantService
@@ -22,13 +22,12 @@ type MerchantServiceInterface struct{
 
 // CreateMerchant implements MerchantService.CreateMerchant
 func (s *MerchantServiceInterface) CreateMerchant(ctx context.Context, req *MerchantSchema) (*MerchantSchema, error) {
-  testutils.Log(fmt.Sprint("MerchantService.CreateMerchant"))
   m := Merchant{
     Schema: req,
     Model: nil,
   }
 
-  testutils.Log(fmt.Sprintf("Merchant: %#v", m.Schema))
+  log.Debug(fmt.Sprintf("Merchant: %#v", m.Schema))
 
   m.copySchema()
 
@@ -38,14 +37,11 @@ func (s *MerchantServiceInterface) CreateMerchant(ctx context.Context, req *Merc
 
   m.copyModel()
 
-  testutils.Log(fmt.Sprintf("Response:\n%#v", m.Schema))
-
   return m.Schema, nil
 }
 
 // GetMerchant implements MerchantService.MerchantQuery
 func (s *MerchantServiceInterface) GetMerchant(ctx context.Context, req *MerchantQuery) (*MerchantSchema, error) {
-  testutils.Log(fmt.Sprint("MerchantService.GetMerchant"))
   m := Merchant{
     Model: &MerchantModel{ID: int(req.Id)},
     Schema: nil,
@@ -62,14 +58,11 @@ func (s *MerchantServiceInterface) GetMerchant(ctx context.Context, req *Merchan
 
   m.copyModel()
 
-  testutils.Log(fmt.Sprintf("Response:\n%#v", m.Schema))
-
   return m.Schema, nil
 }
 
 // UpdateMerchant implements MerchantService.UpdateMerchant
 func (s *MerchantServiceInterface) UpdateMerchant(ctx context.Context, req *MerchantQuery) (*MerchantSchema, error) {
-  testutils.Log(fmt.Sprint("MerchantService.UpdateMerchant"))
   m := Merchant{
     Schema: req.Merchant,
     Model: &MerchantModel{ID: int(req.Id)},
@@ -92,13 +85,12 @@ func (s *MerchantServiceInterface) UpdateMerchant(ctx context.Context, req *Merc
 
   m.copyModel()
 
-  testutils.Log(fmt.Sprintf("Response:\n%#v", m.Schema))
+  log.Debug(fmt.Sprintf("Response:\n%#v", m.Schema))
   return m.Schema, nil
 }
 
 // DeleteMerchant implements MerchantService.DeleteMerchant
 func (s *MerchantServiceInterface) DeleteMerchant(ctx context.Context, req *MerchantQuery) (*wrappers.StringValue, error) {
-  testutils.Log(fmt.Sprint("MerchantService.DeleteMerchant"))
 
   m := Merchant{
     Model: &MerchantModel{ID: int(req.Id)},
@@ -108,7 +100,6 @@ func (s *MerchantServiceInterface) DeleteMerchant(ctx context.Context, req *Merc
     return nil, status.Error(codes.Internal, err.Error())
   }
 
-  testutils.Log(fmt.Sprint("Response:\n{ value: \"success\" }"))
 
   res := &wrappers.StringValue{Value: "success"}
   return res, nil
@@ -116,11 +107,10 @@ func (s *MerchantServiceInterface) DeleteMerchant(ctx context.Context, req *Merc
 
 // GetMerchants implements MerchantService.GetMerchants
 func (s *MerchantServiceInterface) GetMerchants(ctx context.Context, req *MerchantsQuery) (*MerchantsResponse, error) {
-  testutils.Log(fmt.Sprint("MerchantService.GetMerchants"))
 
   count, start := int(req.Count), int(req.Start)
 
-  testutils.Log(fmt.Sprintf("{ count: %d, start: %d }", count, start))
+  log.Debug(fmt.Sprintf("{ count: %d, start: %d }", count, start))
 
   merchants, err := readMerchants(s.app.DB, start, count)
   if err != nil {
@@ -136,8 +126,6 @@ func (s *MerchantServiceInterface) GetMerchants(ctx context.Context, req *Mercha
     copyModel(&m, tmp)
     res.Merchants = append(res.Merchants, tmp)
   }
-
-  testutils.Log(fmt.Sprintf("Response:\n%#v", merchants))
 
   return res, nil
 }

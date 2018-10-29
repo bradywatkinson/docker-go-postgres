@@ -10,9 +10,9 @@ import (
   "google.golang.org/grpc/codes"
   "google.golang.org/grpc/status"
   wrappers "github.com/golang/protobuf/ptypes/wrappers"
+  log "github.com/sirupsen/logrus"
 
   "app/common"
-  "app/test_utils"
 )
 
 // ProductServiceInterface is implemented by ProductService
@@ -22,13 +22,12 @@ type ProductServiceInterface struct{
 
 // CreateProduct implements ProductService.CreateProduct
 func (s *ProductServiceInterface) CreateProduct(ctx context.Context, req *ProductSchema) (*ProductSchema, error) {
-  testutils.Log(fmt.Sprint("ProductService.CreateProduct"))
   p := Product{
     Schema: req,
     Model: nil,
   }
 
-  testutils.Log(fmt.Sprintf("Product: %#v", p.Schema))
+  log.Debug(fmt.Sprintf("Product: %#v", p.Schema))
 
   p.copySchema()
 
@@ -38,14 +37,11 @@ func (s *ProductServiceInterface) CreateProduct(ctx context.Context, req *Produc
 
   p.copyModel()
 
-  testutils.Log(fmt.Sprintf("Response:\n%#v", p.Schema))
-
   return p.Schema, nil
 }
 
 // GetProduct implements ProductService.ProductQuery
 func (s *ProductServiceInterface) GetProduct(ctx context.Context, req *ProductQuery) (*ProductSchema, error) {
-  testutils.Log(fmt.Sprint("ProductService.GetProduct"))
   p := Product{
     Model: &ProductModel{ID: int(req.Id)},
     Schema: nil,
@@ -62,14 +58,11 @@ func (s *ProductServiceInterface) GetProduct(ctx context.Context, req *ProductQu
 
   p.copyModel()
 
-  testutils.Log(fmt.Sprintf("Response:\n%#v", p.Schema))
-
   return p.Schema, nil
 }
 
 // UpdateProduct implements ProductService.UpdateProduct
 func (s *ProductServiceInterface) UpdateProduct(ctx context.Context, req *ProductQuery) (*ProductSchema, error) {
-  testutils.Log(fmt.Sprint("ProductService.UpdateProduct"))
   p := Product{
     Schema: req.Product,
     Model: &ProductModel{ID: int(req.Id)},
@@ -92,13 +85,12 @@ func (s *ProductServiceInterface) UpdateProduct(ctx context.Context, req *Produc
 
   p.copyModel()
 
-  testutils.Log(fmt.Sprintf("Response:\n%#v", p.Schema))
+  log.Debug(fmt.Sprintf("Response:\n%#v", p.Schema))
   return p.Schema, nil
 }
 
 // DeleteProduct implements ProductService.DeleteProduct
 func (s *ProductServiceInterface) DeleteProduct(ctx context.Context, req *ProductQuery) (*wrappers.StringValue, error) {
-  testutils.Log(fmt.Sprint("ProductService.DeleteProduct"))
 
   p := Product{
     Model: &ProductModel{ID: int(req.Id)},
@@ -108,7 +100,6 @@ func (s *ProductServiceInterface) DeleteProduct(ctx context.Context, req *Produc
     return nil, status.Error(codes.Internal, err.Error())
   }
 
-  testutils.Log(fmt.Sprint("Response:\n{ value: \"success\" }"))
 
   m := &wrappers.StringValue{Value: "success"}
   return m, nil
@@ -116,11 +107,10 @@ func (s *ProductServiceInterface) DeleteProduct(ctx context.Context, req *Produc
 
 // GetProducts implements ProductService.GetProducts
 func (s *ProductServiceInterface) GetProducts(ctx context.Context, req *ProductsQuery) (*ProductsResponse, error) {
-  testutils.Log(fmt.Sprint("ProductService.GetProducts"))
 
   count, start := int(req.Count), int(req.Start)
 
-  testutils.Log(fmt.Sprintf("{ count: %d, start: %d }", count, start))
+  log.Debug(fmt.Sprintf("{ count: %d, start: %d }", count, start))
 
   products, err := readProducts(s.app.DB, start, count)
   if err != nil {
@@ -136,8 +126,6 @@ func (s *ProductServiceInterface) GetProducts(ctx context.Context, req *Products
     copyModel(&p, tmp)
     res.Products = append(res.Products, tmp)
   }
-
-  testutils.Log(fmt.Sprintf("Response:\n%#v", products))
 
   return res, nil
 }

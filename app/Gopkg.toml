@@ -50,6 +50,10 @@
   name = "github.com/mholt/binding"
   revision = "60500d44429b9606cbbba45967fc45aae3e1f87c"
 
+[[constraint]]
+  branch = "master"
+  name = "github.com/urfave/negroni"
+
 [prune]
   go-tests = true
   unused-packages = true

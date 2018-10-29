@@ -10,14 +10,13 @@ import (
 
   "github.com/gorilla/mux"
   "github.com/mholt/binding"
+  log "github.com/sirupsen/logrus"
 
   "app/common"
-  "app/test_utils"
 )
 
 func postProduct(a *common.App) func(http.ResponseWriter, *http.Request) {
   return func(w http.ResponseWriter, req *http.Request) {
-    testutils.Log(fmt.Sprint("POST /product:"))
 
     p := Product{
       Schema: &ProductSchema{},
@@ -28,7 +27,7 @@ func postProduct(a *common.App) func(http.ResponseWriter, *http.Request) {
       return
     }
 
-    testutils.Log(fmt.Sprintf("Product: %#v", p.Schema))
+    log.Debug(fmt.Sprintf("Product: %#v", p.Schema))
 
     p.copySchema()
 
@@ -39,14 +38,13 @@ func postProduct(a *common.App) func(http.ResponseWriter, *http.Request) {
 
     p.copyModel()
 
-    testutils.Log(fmt.Sprintf("Response:\n%#v", p.Schema))
+    log.Debug(fmt.Sprintf("Response:\n%#v", p.Schema))
     common.RespondWithJSON(w, http.StatusCreated, p.Schema)
   }
 }
 
 func getProduct(a *common.App) func(http.ResponseWriter, *http.Request) {
   return func(w http.ResponseWriter, req *http.Request) {
-    testutils.Log(fmt.Sprint("GET /product:"))
     vars := mux.Vars(req)
     id, err := strconv.Atoi(vars["id"])
     if err != nil {
@@ -54,7 +52,7 @@ func getProduct(a *common.App) func(http.ResponseWriter, *http.Request) {
       return
     }
 
-    testutils.Log(fmt.Sprintf("{ id: %d }", id))
+    log.Debug(fmt.Sprintf("{ id: %d }", id))
 
     p := Product{
       Model: &ProductModel{ID: id},
@@ -72,7 +70,7 @@ func getProduct(a *common.App) func(http.ResponseWriter, *http.Request) {
 
     p.copyModel()
 
-    testutils.Log(fmt.Sprintf("Response:\n%#v", p.Schema))
+    log.Debug(fmt.Sprintf("Response:\n%#v", p.Schema))
 
     common.RespondWithJSON(w, http.StatusOK, p.Schema)
   }
@@ -80,7 +78,6 @@ func getProduct(a *common.App) func(http.ResponseWriter, *http.Request) {
 
 func putProduct(a *common.App) func(http.ResponseWriter, *http.Request) {
   return func(w http.ResponseWriter, req *http.Request) {
-    testutils.Log(fmt.Sprint("PUT /product"))
     vars := mux.Vars(req)
     id, err := strconv.Atoi(vars["id"])
     if err != nil {
@@ -103,7 +100,7 @@ func putProduct(a *common.App) func(http.ResponseWriter, *http.Request) {
       return
     }
 
-    testutils.Log(fmt.Sprintf("Product: %#v", p.Model))
+    log.Debug(fmt.Sprintf("Product: %#v", p.Model))
 
     if err := binding.Bind(req, p.Schema); err != nil {
       common.RespondWithError(w, http.StatusBadRequest, fmt.Sprintf("Invalid request payload: %v", err.Error()))
@@ -120,7 +117,7 @@ func putProduct(a *common.App) func(http.ResponseWriter, *http.Request) {
 
     p.copyModel()
 
-    testutils.Log(fmt.Sprintf("Response:\n%#v", p.Schema))
+    log.Debug(fmt.Sprintf("Response:\n%#v", p.Schema))
 
     common.RespondWithJSON(w, http.StatusOK, p.Schema)
   }
@@ -128,7 +125,6 @@ func putProduct(a *common.App) func(http.ResponseWriter, *http.Request) {
 
 func deleteProduct(a *common.App) func(http.ResponseWriter, *http.Request) {
   return func(w http.ResponseWriter, req *http.Request) {
-    testutils.Log(fmt.Sprint("DELETE /product"))
     vars := mux.Vars(req)
     id, err := strconv.Atoi(vars["id"])
     if err != nil {
@@ -136,7 +132,7 @@ func deleteProduct(a *common.App) func(http.ResponseWriter, *http.Request) {
       return
     }
 
-    testutils.Log(fmt.Sprintf("{ id: %d }", id))
+    log.Debug(fmt.Sprintf("{ id: %d }", id))
 
     p := Product{
       Model: &ProductModel{ID: id},
@@ -147,7 +143,6 @@ func deleteProduct(a *common.App) func(http.ResponseWriter, *http.Request) {
       return
     }
 
-    testutils.Log(fmt.Sprint("Response:\n{ result: \"success\" }"))
 
     common.RespondWithJSON(w, http.StatusOK, map[string]string{"result": "success"})
   }
@@ -155,14 +150,13 @@ func deleteProduct(a *common.App) func(http.ResponseWriter, *http.Request) {
 
 func getProducts(a *common.App) func(http.ResponseWriter, *http.Request) {
   return func(w http.ResponseWriter, req *http.Request) {
-    testutils.Log(fmt.Sprint("GET /products"))
     q := &ProductsQuery{}
     if err := binding.Bind(req, q); err != nil {
       common.RespondWithError(w, http.StatusBadRequest,fmt.Sprintf("Invalid request payload: %v", err.Error()))
       return
     }
 
-    testutils.Log(fmt.Sprintf("{ count: %d, start: %d }", q.Count, q.Start))
+    log.Debug(fmt.Sprintf("{ count: %d, start: %d }", q.Count, q.Start))
 
     products, err := readProducts(a.DB, int(q.Start), int(q.Count))
     if err != nil {
@@ -170,7 +164,7 @@ func getProducts(a *common.App) func(http.ResponseWriter, *http.Request) {
       return
     }
 
-    testutils.Log(fmt.Sprintf("Response:\n%#v", products))
+    log.Debug(fmt.Sprintf("Response:\n%#v", products))
 
     common.RespondWithJSON(w, http.StatusOK, products)
   }

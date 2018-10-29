@@ -10,14 +10,13 @@ import (
 
   "github.com/gorilla/mux"
   "github.com/mholt/binding"
+  log "github.com/sirupsen/logrus"
 
   "app/common"
-  "app/test_utils"
 )
 
 func postCustomer(a *common.App) func(http.ResponseWriter, *http.Request) {
   return func(w http.ResponseWriter, req *http.Request) {
-    testutils.Log(fmt.Sprint("POST /customer:"))
 
     c := Customer{
       Schema: &CustomerSchema{},
@@ -28,7 +27,7 @@ func postCustomer(a *common.App) func(http.ResponseWriter, *http.Request) {
       return
     }
 
-    testutils.Log(fmt.Sprintf("Customer: %#v", c.Schema))
+    log.Debug(fmt.Sprintf("Customer: %#v", c.Schema))
 
     c.copySchema()
 
@@ -39,14 +38,13 @@ func postCustomer(a *common.App) func(http.ResponseWriter, *http.Request) {
 
     c.copyModel()
 
-    testutils.Log(fmt.Sprintf("Response:\n%#v", c.Schema))
+    log.Debug(fmt.Sprintf("Response:\n%#v", c.Schema))
     common.RespondWithJSON(w, http.StatusCreated, c.Schema)
   }
 }
 
 func getCustomer(a *common.App) func(http.ResponseWriter, *http.Request) {
   return func(w http.ResponseWriter, req *http.Request) {
-    testutils.Log(fmt.Sprint("GET /customer:"))
     vars := mux.Vars(req)
     id, err := strconv.Atoi(vars["id"])
     if err != nil {
@@ -54,7 +52,7 @@ func getCustomer(a *common.App) func(http.ResponseWriter, *http.Request) {
       return
     }
 
-    testutils.Log(fmt.Sprintf("{ id: %d }", id))
+    log.Debug(fmt.Sprintf("{ id: %d }", id))
 
     c := Customer{
       Model: &CustomerModel{ID: id},
@@ -72,7 +70,7 @@ func getCustomer(a *common.App) func(http.ResponseWriter, *http.Request) {
 
     c.copyModel()
 
-    testutils.Log(fmt.Sprintf("Response:\n%#v", c.Schema))
+    log.Debug(fmt.Sprintf("Response:\n%#v", c.Schema))
 
     common.RespondWithJSON(w, http.StatusOK, c.Schema)
   }
@@ -80,7 +78,6 @@ func getCustomer(a *common.App) func(http.ResponseWriter, *http.Request) {
 
 func putCustomer(a *common.App) func(http.ResponseWriter, *http.Request) {
   return func(w http.ResponseWriter, req *http.Request) {
-    testutils.Log(fmt.Sprint("PUT /customer"))
     vars := mux.Vars(req)
     id, err := strconv.Atoi(vars["id"])
     if err != nil {
@@ -88,7 +85,7 @@ func putCustomer(a *common.App) func(http.ResponseWriter, *http.Request) {
       return
     }
 
-    testutils.Log(fmt.Sprintf("{ id: %d }", id))
+    log.Debug(fmt.Sprintf("{ id: %d }", id))
 
     c := Customer{
       Model: &CustomerModel{ID: id},
@@ -105,7 +102,7 @@ func putCustomer(a *common.App) func(http.ResponseWriter, *http.Request) {
       return
     }
 
-    testutils.Log(fmt.Sprintf("Customer: %#v", c.Model))
+    log.Debug(fmt.Sprintf("Customer: %#v", c.Model))
 
     if err := binding.Bind(req, c.Schema); err != nil {
       common.RespondWithError(w, http.StatusBadRequest, fmt.Sprintf("Invalid request payload: %v", err.Error()))
@@ -122,7 +119,7 @@ func putCustomer(a *common.App) func(http.ResponseWriter, *http.Request) {
 
     c.copyModel()
 
-    testutils.Log(fmt.Sprintf("Response:\n%#v", c.Schema))
+    log.Debug(fmt.Sprintf("Response:\n%#v", c.Schema))
 
     common.RespondWithJSON(w, http.StatusOK, c.Schema)
   }
@@ -130,7 +127,6 @@ func putCustomer(a *common.App) func(http.ResponseWriter, *http.Request) {
 
 func deleteCustomer(a *common.App) func(http.ResponseWriter, *http.Request) {
   return func(w http.ResponseWriter, req *http.Request) {
-    testutils.Log(fmt.Sprint("DELETE /customer"))
     vars := mux.Vars(req)
     id, err := strconv.Atoi(vars["id"])
     if err != nil {
@@ -138,7 +134,7 @@ func deleteCustomer(a *common.App) func(http.ResponseWriter, *http.Request) {
       return
     }
 
-    testutils.Log(fmt.Sprintf("{ id: %d }", id))
+    log.Debug(fmt.Sprintf("{ id: %d }", id))
 
     c := Customer{
       Model: &CustomerModel{ID: id},
@@ -149,7 +145,6 @@ func deleteCustomer(a *common.App) func(http.ResponseWriter, *http.Request) {
       return
     }
 
-    testutils.Log(fmt.Sprint("Response:\n{ result: \"success\" }"))
 
     common.RespondWithJSON(w, http.StatusOK, map[string]string{"result": "success"})
   }
@@ -157,14 +152,13 @@ func deleteCustomer(a *common.App) func(http.ResponseWriter, *http.Request) {
 
 func getCustomers(a *common.App) func(http.ResponseWriter, *http.Request) {
   return func(w http.ResponseWriter, req *http.Request) {
-    testutils.Log(fmt.Sprint("GET /customers"))
     q := &CustomersQuery{}
     if err := binding.Bind(req, q); err != nil {
       common.RespondWithError(w, http.StatusBadRequest, fmt.Sprintf("Invalid request payload: %v", err.Error()))
       return
     }
 
-    testutils.Log(fmt.Sprintf("{ count: %d, start: %d }", q.Count, q.Start))
+    log.Debug(fmt.Sprintf("{ count: %d, start: %d }", q.Count, q.Start))
 
     customers, err := readCustomers(a.DB, int(q.Start), int(q.Count))
     if err != nil {
@@ -172,7 +166,7 @@ func getCustomers(a *common.App) func(http.ResponseWriter, *http.Request) {
       return
     }
 
-    testutils.Log(fmt.Sprintf("Response:\n%#v", customers))
+    log.Debug(fmt.Sprintf("Response:\n%#v", customers))
 
     common.RespondWithJSON(w, http.StatusOK, customers)
   }

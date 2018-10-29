@@ -4,9 +4,10 @@ package common
 
 import (
   "database/sql"
-  "log"
 
   _ "github.com/lib/pq" // postgres sql driver
+
+  log "github.com/sirupsen/logrus"
 )
 
 

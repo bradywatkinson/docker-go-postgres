@@ -10,14 +10,13 @@ import (
 
   "github.com/gorilla/mux"
   "github.com/mholt/binding"
+  log "github.com/sirupsen/logrus"
 
   "app/common"
-  "app/test_utils"
 )
 
 func postReview(a *common.App) func(http.ResponseWriter, *http.Request) {
   return func(w http.ResponseWriter, req *http.Request) {
-    testutils.Log(fmt.Sprint("POST /review:"))
 
     r := Review{
       Schema: &ReviewSchema{},
@@ -28,7 +27,7 @@ func postReview(a *common.App) func(http.ResponseWriter, *http.Request) {
     }
     defer req.Body.Close()
 
-    testutils.Log(fmt.Sprintf("%#v", r.Schema))
+    log.Debug(fmt.Sprintf("%#v", r.Schema))
 
     r.copySchema()
 
@@ -39,14 +38,13 @@ func postReview(a *common.App) func(http.ResponseWriter, *http.Request) {
 
     r.copyModel()
 
-    testutils.Log(fmt.Sprintf("Response:\n%#v", r.Schema))
+    log.Debug(fmt.Sprintf("Response:\n%#v", r.Schema))
     common.RespondWithJSON(w, http.StatusCreated, r.Schema)
   }
 }
 
 func getReview(a *common.App) func(http.ResponseWriter, *http.Request) {
   return func(w http.ResponseWriter, req *http.Request) {
-    testutils.Log(fmt.Sprint("GET /review:"))
     vars := mux.Vars(req)
     id, err := strconv.Atoi(vars["id"])
     if err != nil {
@@ -54,7 +52,7 @@ func getReview(a *common.App) func(http.ResponseWriter, *http.Request) {
       return
     }
 
-    testutils.Log(fmt.Sprintf("{ id: %d }", id))
+    log.Debug(fmt.Sprintf("{ id: %d }", id))
 
     r := Review{
       Model: &ReviewModel{ID: id},
@@ -72,7 +70,7 @@ func getReview(a *common.App) func(http.ResponseWriter, *http.Request) {
 
     r.copyModel()
 
-    testutils.Log(fmt.Sprintf("Response:\n%#v", r.Schema))
+    log.Debug(fmt.Sprintf("Response:\n%#v", r.Schema))
 
     common.RespondWithJSON(w, http.StatusOK, r.Schema)
   }
@@ -80,7 +78,6 @@ func getReview(a *common.App) func(http.ResponseWriter, *http.Request) {
 
 func putReview(a *common.App) func(http.ResponseWriter, *http.Request) {
   return func(w http.ResponseWriter, req *http.Request) {
-    testutils.Log(fmt.Sprint("PUT /review"))
     vars := mux.Vars(req)
     id, err := strconv.Atoi(vars["id"])
     if err != nil {
@@ -103,7 +100,7 @@ func putReview(a *common.App) func(http.ResponseWriter, *http.Request) {
       return
     }
 
-    testutils.Log(fmt.Sprintf("Review: %#v", r.Model))
+    log.Debug(fmt.Sprintf("Review: %#v", r.Model))
 
     if err := binding.Bind(req, r.Schema); err != nil {
       common.RespondWithError(w, http.StatusBadRequest, fmt.Sprintf("Invalid request payload: %v", err.Error()))
@@ -120,7 +117,7 @@ func putReview(a *common.App) func(http.ResponseWriter, *http.Request) {
 
     r.copyModel()
 
-    testutils.Log(fmt.Sprintf("Response:\n%#v", r.Schema))
+    log.Debug(fmt.Sprintf("Response:\n%#v", r.Schema))
 
     common.RespondWithJSON(w, http.StatusOK, r.Schema)
   }
@@ -128,7 +125,6 @@ func putReview(a *common.App) func(http.ResponseWriter, *http.Request) {
 
 func deleteReview(a *common.App) func(http.ResponseWriter, *http.Request) {
   return func(w http.ResponseWriter, req *http.Request) {
-    testutils.Log(fmt.Sprint("DELETE /review"))
     vars := mux.Vars(req)
     id, err := strconv.Atoi(vars["id"])
     if err != nil {
@@ -136,7 +132,7 @@ func deleteReview(a *common.App) func(http.ResponseWriter, *http.Request) {
       return
     }
 
-    testutils.Log(fmt.Sprintf("{ id: %d }", id))
+    log.Debug(fmt.Sprintf("{ id: %d }", id))
 
     r := Review{
       Model: &ReviewModel{ID: id},
@@ -147,7 +143,6 @@ func deleteReview(a *common.App) func(http.ResponseWriter, *http.Request) {
       return
     }
 
-    testutils.Log(fmt.Sprint("Response:\n{ result: \"success\" }"))
 
     common.RespondWithJSON(w, http.StatusOK, map[string]string{"result": "success"})
   }
@@ -155,14 +150,13 @@ func deleteReview(a *common.App) func(http.ResponseWriter, *http.Request) {
 
 func getReviews(a *common.App) func(http.ResponseWriter, *http.Request) {
   return func(w http.ResponseWriter, req *http.Request) {
-    testutils.Log(fmt.Sprint("GET /reviews"))
     q := &ReviewsQuery{}
     if err := binding.Bind(req, q); err != nil {
       common.RespondWithError(w, http.StatusBadRequest, fmt.Sprintf("Invalid request payload: %v", err.Error()))
       return
     }
 
-    testutils.Log(fmt.Sprintf("{ count: %d, start: %d }", q.Count, q.Start))
+    log.Debug(fmt.Sprintf("{ count: %d, start: %d }", q.Count, q.Start))
 
     reviews, err := readReviews(a.DB, int(q.Start), int(q.Count))
     if err != nil {
@@ -170,7 +164,7 @@ func getReviews(a *common.App) func(http.ResponseWriter, *http.Request) {
       return
     }
 
-    testutils.Log(fmt.Sprintf("Response:\n%#v", reviews))
+    log.Debug(fmt.Sprintf("Response:\n%#v", reviews))
 
     common.RespondWithJSON(w, http.StatusOK, reviews)
   }

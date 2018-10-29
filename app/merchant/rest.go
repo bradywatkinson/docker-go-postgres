@@ -10,14 +10,13 @@ import (
 
   "github.com/gorilla/mux"
   "github.com/mholt/binding"
+  log "github.com/sirupsen/logrus"
 
   "app/common"
-  "app/test_utils"
 )
 
 func postMerchant(a *common.App) func(http.ResponseWriter, *http.Request) {
   return func(w http.ResponseWriter, req *http.Request) {
-    testutils.Log(fmt.Sprint("POST /merchant:"))
 
     m := Merchant{
       Schema: &MerchantSchema{},
@@ -28,7 +27,7 @@ func postMerchant(a *common.App) func(http.ResponseWriter, *http.Request) {
       return
     }
 
-    testutils.Log(fmt.Sprintf("Merchant: %#v", m.Schema))
+    log.Debug(fmt.Sprintf("Merchant: %#v", m.Schema))
 
     m.copySchema()
 
@@ -39,14 +38,13 @@ func postMerchant(a *common.App) func(http.ResponseWriter, *http.Request) {
 
     m.copyModel()
 
-    testutils.Log(fmt.Sprintf("Response:\n%#v", m.Schema))
+    log.Debug(fmt.Sprintf("Response:\n%#v", m.Schema))
     common.RespondWithJSON(w, http.StatusCreated, m.Schema)
   }
 }
 
 func getMerchant(a *common.App) func(http.ResponseWriter, *http.Request) {
   return func(w http.ResponseWriter, req *http.Request) {
-    testutils.Log(fmt.Sprint("GET /merchant:"))
     vars := mux.Vars(req)
     id, err := strconv.Atoi(vars["id"])
     if err != nil {
@@ -54,7 +52,7 @@ func getMerchant(a *common.App) func(http.ResponseWriter, *http.Request) {
       return
     }
 
-    testutils.Log(fmt.Sprintf("{ id: %d }", id))
+    log.Debug(fmt.Sprintf("{ id: %d }", id))
 
     m := Merchant{
       Model: &MerchantModel{ID: id},
@@ -72,7 +70,7 @@ func getMerchant(a *common.App) func(http.ResponseWriter, *http.Request) {
 
     m.copyModel()
 
-    testutils.Log(fmt.Sprintf("Response:\n%#v", m.Schema))
+    log.Debug(fmt.Sprintf("Response:\n%#v", m.Schema))
 
     common.RespondWithJSON(w, http.StatusOK, m.Schema)
   }
@@ -80,7 +78,6 @@ func getMerchant(a *common.App) func(http.ResponseWriter, *http.Request) {
 
 func putMerchant(a *common.App) func(http.ResponseWriter, *http.Request) {
   return func(w http.ResponseWriter, req *http.Request) {
-    testutils.Log(fmt.Sprint("PUT /merchant"))
     vars := mux.Vars(req)
     id, err := strconv.Atoi(vars["id"])
     if err != nil {
@@ -88,7 +85,7 @@ func putMerchant(a *common.App) func(http.ResponseWriter, *http.Request) {
       return
     }
 
-    testutils.Log(fmt.Sprintf("{ id: %d }", id))
+    log.Debug(fmt.Sprintf("{ id: %d }", id))
 
     m := Merchant{
       Model: &MerchantModel{ID: id},
@@ -105,7 +102,7 @@ func putMerchant(a *common.App) func(http.ResponseWriter, *http.Request) {
       return
     }
 
-    testutils.Log(fmt.Sprintf("Merchant: %#v", m.Model))
+    log.Debug(fmt.Sprintf("Merchant: %#v", m.Model))
 
     if err := binding.Bind(req, m.Schema); err != nil {
       common.RespondWithError(w, http.StatusBadRequest, fmt.Sprintf("Invalid request payload: %v", err.Error()))
@@ -122,7 +119,7 @@ func putMerchant(a *common.App) func(http.ResponseWriter, *http.Request) {
 
     m.copyModel()
 
-    testutils.Log(fmt.Sprintf("Response:\n%#v", m.Schema))
+    log.Debug(fmt.Sprintf("Response:\n%#v", m.Schema))
 
     common.RespondWithJSON(w, http.StatusOK, m.Schema)
   }
@@ -130,7 +127,6 @@ func putMerchant(a *common.App) func(http.ResponseWriter, *http.Request) {
 
 func deleteMerchant(a *common.App) func(http.ResponseWriter, *http.Request) {
   return func(w http.ResponseWriter, req *http.Request) {
-    testutils.Log(fmt.Sprint("DELETE /merchant"))
     vars := mux.Vars(req)
     id, err := strconv.Atoi(vars["id"])
     if err != nil {
@@ -138,7 +134,7 @@ func deleteMerchant(a *common.App) func(http.ResponseWriter, *http.Request) {
       return
     }
 
-    testutils.Log(fmt.Sprintf("{ id: %d }", id))
+    log.Debug(fmt.Sprintf("{ id: %d }", id))
 
     m := Merchant{
       Model: &MerchantModel{ID: id},
@@ -149,7 +145,6 @@ func deleteMerchant(a *common.App) func(http.ResponseWriter, *http.Request) {
       return
     }
 
-    testutils.Log(fmt.Sprint("Response:\n{ result: \"success\" }"))
 
     common.RespondWithJSON(w, http.StatusOK, map[string]string{"result": "success"})
   }
@@ -157,14 +152,13 @@ func deleteMerchant(a *common.App) func(http.ResponseWriter, *http.Request) {
 
 func getMerchants(a *common.App) func(http.ResponseWriter, *http.Request) {
   return func(w http.ResponseWriter, req *http.Request) {
-    testutils.Log(fmt.Sprint("GET /merchants"))
     q := &MerchantsQuery{}
     if err := binding.Bind(req, q); err != nil {
       common.RespondWithError(w, http.StatusBadRequest, fmt.Sprintf("Invalid request payload: %v", err.Error()))
       return
     }
 
-    testutils.Log(fmt.Sprintf("{ count: %d, start: %d }", q.Count, q.Start))
+    log.Debug(fmt.Sprintf("{ count: %d, start: %d }", q.Count, q.Start))
 
     merchants, err := readMerchants(a.DB, int(q.Start), int(q.Count))
     if err != nil {
@@ -172,7 +166,7 @@ func getMerchants(a *common.App) func(http.ResponseWriter, *http.Request) {
       return
     }
 
-    testutils.Log(fmt.Sprintf("Response:\n%#v", merchants))
+    log.Debug(fmt.Sprintf("Response:\n%#v", merchants))
 
     common.RespondWithJSON(w, http.StatusOK, merchants)
   }

@@ -74,13 +74,19 @@ Use "dep help [command]" for more information about a command.
 
 Add dependencies:
 
-Adding a dependency is a two step process:
+1. Stop the app
 
-    $ dep ensure -add github.com/pkg/errors github.com/foo/bar -no-vendor
+2. `$ docker-compose run dep ensure -add github.com/pkg/errors github.com/foo/bar -no-vendor`
 
-This will cause only the solving function to be run, resulting in the creation of a new Gopkg.lock. After this, rebuild the app container.
+3. `$ docker-compose build app`
 
-Dep will also search the imports in your project to ensure your `Gopkg.lock` is in sync with your imports is in sync with `/vendor`
+4. `$ docker-compose run dep ensure`
+
+Ignore the error
+
+    grouped write of manifest, lock and vendor: failed to remove original vendor directory: remove /go/src/app/vendor: device or resource busy
+
+and deleter `.vendor-new`
 
 ### Tool Dependencies
 
