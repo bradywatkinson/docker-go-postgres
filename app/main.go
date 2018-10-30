@@ -5,7 +5,6 @@ package main
 import (
   "fmt"
   "os"
-  "log"
   "net"
   "net/http"
   "crypto/tls"
@@ -13,6 +12,7 @@ import (
 
   grpc "google.golang.org/grpc"
   "google.golang.org/grpc/reflection"
+  log "github.com/sirupsen/logrus"
 
   "app/common"
   "app/certs"
@@ -22,11 +22,9 @@ import (
   "app/review"
 )
 
-func init() {
-  common.InitializeLogger()
-}
-
 func main() {
+  common.InitializeLogger()
+
   addr := fmt.Sprintf(":%s", os.Getenv("PORT"))
 
   keyPair, certPool := certs.GetCert()
@@ -72,6 +70,9 @@ func main() {
     log.Panic(err)
   }
 
+  log.WithFields(log.Fields{
+    "addr": addr,
+  }).Info("Starting Server")
   log.Fatal(srv.Serve(tls.NewListener(lis, srv.TLSConfig)))
 }
 

@@ -3,12 +3,12 @@
 package merchant
 
 import (
-  "database/sql"
   "context"
 
   "google.golang.org/grpc/codes"
   "google.golang.org/grpc/status"
   wrappers "github.com/golang/protobuf/ptypes/wrappers"
+  "github.com/jinzhu/gorm"
 
   "app/common"
 )
@@ -45,7 +45,7 @@ func (s *MerchantServiceInterface) GetMerchant(ctx context.Context, req *Merchan
 
   if err := m.Model.readMerchant(s.app.DB); err != nil {
     switch err {
-    case sql.ErrNoRows:
+    case gorm.ErrRecordNotFound:
       return nil, status.Error(codes.NotFound, "Merchant not found")
     default:
       return nil, status.Error(codes.Internal, err.Error())
@@ -66,7 +66,7 @@ func (s *MerchantServiceInterface) UpdateMerchant(ctx context.Context, req *Merc
 
   if err := m.Model.readMerchant(s.app.DB); err != nil {
     switch err {
-    case sql.ErrNoRows:
+    case gorm.ErrRecordNotFound:
       return nil, status.Error(codes.NotFound, "Merchant not found")
     default:
       return nil, status. Error(codes.Internal, err.Error())

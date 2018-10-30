@@ -4,16 +4,20 @@ package testutils
 
 import (
   "fmt"
-  "log"
   "strconv"
+
+  log "github.com/sirupsen/logrus"
 
   "app/common"
 )
 
 // SetupDB is a utility function to setup a testing db
 func SetupDB(a *common.App) {
-  if _, err := a.DB.Exec(setupDBQuery); err != nil {
+  if err := a.DB.Exec(setupDBQuery).Error; err != nil {
     log.Fatal(err)
+  }
+  if err := a.DB.Exec("select * from review").Error; err != nil {
+    log.Error(err)
   }
 }
 
@@ -72,18 +76,104 @@ ALTER TABLE product ADD CONSTRAINT fk_product_merchant_id_merchant FOREIGN KEY(m
 
 UPDATE alembic_version SET version_num='2946eee19802' WHERE alembic_version.version_num = '0e394ab31a97';
 
+-- Running upgrade 2946eee19802 -> f2ea8a1fc7b6
+
+ALTER TABLE customer ADD COLUMN created_at TIMESTAMP WITHOUT TIME ZONE DEFAULT now() NOT NULL;
+
+ALTER TABLE customer ADD COLUMN deleted_at TIMESTAMP WITHOUT TIME ZONE;
+
+ALTER TABLE customer ADD COLUMN updated_at TIMESTAMP WITHOUT TIME ZONE DEFAULT now() NOT NULL;
+
+CREATE INDEX ix_customer_deleted_at ON customer (deleted_at);
+
+ALTER TABLE customer DROP COLUMN committed_timestamp;
+
+ALTER TABLE merchant ADD COLUMN created_at TIMESTAMP WITHOUT TIME ZONE DEFAULT now() NOT NULL;
+
+ALTER TABLE merchant ADD COLUMN deleted_at TIMESTAMP WITHOUT TIME ZONE;
+
+ALTER TABLE merchant ADD COLUMN updated_at TIMESTAMP WITHOUT TIME ZONE DEFAULT now() NOT NULL;
+
+CREATE INDEX ix_merchant_deleted_at ON merchant (deleted_at);
+
+ALTER TABLE merchant DROP COLUMN committed_timestamp;
+
+ALTER TABLE product ADD COLUMN created_at TIMESTAMP WITHOUT TIME ZONE DEFAULT now() NOT NULL;
+
+ALTER TABLE product ADD COLUMN deleted_at TIMESTAMP WITHOUT TIME ZONE;
+
+ALTER TABLE product ADD COLUMN updated_at TIMESTAMP WITHOUT TIME ZONE DEFAULT now() NOT NULL;
+
+CREATE INDEX ix_product_deleted_at ON product (deleted_at);
+
+ALTER TABLE product DROP COLUMN committed_timestamp;
+
+ALTER TABLE review ADD COLUMN created_at TIMESTAMP WITHOUT TIME ZONE DEFAULT now() NOT NULL;
+
+ALTER TABLE review ADD COLUMN deleted_at TIMESTAMP WITHOUT TIME ZONE;
+
+ALTER TABLE review ADD COLUMN updated_at TIMESTAMP WITHOUT TIME ZONE DEFAULT now() NOT NULL;
+
+CREATE INDEX ix_review_deleted_at ON review (deleted_at);
+
+ALTER TABLE review DROP COLUMN committed_timestamp;
+
+UPDATE alembic_version SET version_num='f2ea8a1fc7b6' WHERE alembic_version.version_num = '2946eee19802';
+
 COMMIT;
 `
 
 // TeardownDB is a utility function to cleanup the db after testing
 func TeardownDB(a *common.App) {
-  if _, err := a.DB.Exec(teardownDBQuery); err != nil {
+  if err := a.DB.Exec(teardownDBQuery).Error; err != nil {
     log.Fatal(err)
   }
 }
 
 const teardownDBQuery = `
 BEGIN;
+
+ALTER TABLE review ADD COLUMN committed_timestamp TIMESTAMP WITHOUT TIME ZONE DEFAULT now() NOT NULL;
+
+DROP INDEX ix_review_deleted_at;
+
+ALTER TABLE review DROP COLUMN updated_at;
+
+ALTER TABLE review DROP COLUMN deleted_at;
+
+ALTER TABLE review DROP COLUMN created_at;
+
+ALTER TABLE product ADD COLUMN committed_timestamp TIMESTAMP WITHOUT TIME ZONE DEFAULT now() NOT NULL;
+
+DROP INDEX ix_product_deleted_at;
+
+ALTER TABLE product DROP COLUMN updated_at;
+
+ALTER TABLE product DROP COLUMN deleted_at;
+
+ALTER TABLE product DROP COLUMN created_at;
+
+ALTER TABLE merchant ADD COLUMN committed_timestamp TIMESTAMP WITHOUT TIME ZONE DEFAULT now() NOT NULL;
+
+DROP INDEX ix_merchant_deleted_at;
+
+ALTER TABLE merchant DROP COLUMN updated_at;
+
+ALTER TABLE merchant DROP COLUMN deleted_at;
+
+ALTER TABLE merchant DROP COLUMN created_at;
+
+ALTER TABLE customer ADD COLUMN committed_timestamp TIMESTAMP WITHOUT TIME ZONE DEFAULT now() NOT NULL;
+
+DROP INDEX ix_customer_deleted_at;
+
+ALTER TABLE customer DROP COLUMN updated_at;
+
+ALTER TABLE customer DROP COLUMN deleted_at;
+
+ALTER TABLE customer DROP COLUMN created_at;
+
+UPDATE alembic_version SET version_num='2946eee19802' WHERE alembic_version.version_num = 'f2ea8a1fc7b6';
 
 ALTER TABLE product DROP CONSTRAINT fk_product_merchant_id_merchant;
 
@@ -122,11 +212,11 @@ func AddCustomers(a *common.App, count int) ([]int, error) {
 
   for i := 0; i < count; i++ {
     var id int
-    err := a.DB.QueryRow("INSERT INTO customer(first_name, last_name) VALUES($1, $2) RETURNING id",
-      "customerGirstName"+strconv.Itoa(i),
+    row := a.DB.Raw("INSERT INTO customer(first_name, last_name) VALUES($1, $2) RETURNING id",
+      "customerFirstName"+strconv.Itoa(i),
       "customerLastName"+strconv.Itoa(i),
-    ).Scan(&id)
-    if err != nil {
+    ).Row()
+    if err := row.Scan(&id); err != nil {
       return nil, err
     }
     ids = append(ids, id)
@@ -144,10 +234,12 @@ func AddMerchants(a *common.App, count int) ([]int, error) {
 
   for i := 0; i < count; i++ {
     var id int
-    err := a.DB.QueryRow("INSERT INTO merchant(name) VALUES($1) RETURNING id", "Merchant "+strconv.Itoa(i)).Scan(&id)
-    if err != nil {
+    row := a.DB.Raw("INSERT INTO merchant(name) VALUES($1) RETURNING id", "Merchant "+strconv.Itoa(i)).Row()
+    if err := row.Scan(&id); err != nil {
+      log.Warnf("%#v", err)
       return nil, err
     }
+    log.Warnf("%#v", id)
     ids = append(ids, id)
   }
   return ids, nil
@@ -165,12 +257,12 @@ func AddProducts(a *common.App, count int) ([]int, error) {
 
   for i := 0; i < count; i++ {
     var id int
-    err := a.DB.QueryRow("INSERT INTO product(name, price, merchant_id) VALUES($1, $2, $3) RETURNING id",
+    row := a.DB.Raw("INSERT INTO product(name, price, merchant_id) VALUES($1, $2, $3) RETURNING id",
       "Product "+strconv.Itoa(i),
       (i+1.0)*10,
       mIds[0],
-    ).Scan(&id)
-    if err != nil {
+    ).Row()
+    if err := row.Scan(&id); err != nil {
       return nil, err
     }
     ids = append(ids, id)
@@ -191,13 +283,13 @@ func AddReviews(a *common.App, count int) ([]int, error) {
 
   for i := 0; i < count; i++ {
     var id int
-    err := a.DB.QueryRow("INSERT INTO review(rating, review, customer_id, product_id) VALUES($1, $2, $3, $4) RETURNING id",
+    row := a.DB.Raw("INSERT INTO review(rating, review, customer_id, product_id) VALUES($1, $2, $3, $4) RETURNING id",
       i,
       "Reiew "+strconv.Itoa(i),
       pIds[0],
       cIds[0],
-    ).Scan(&id)
-    if err != nil {
+    ).Row()
+    if err := row.Scan(&id); err != nil {
       return nil, err
     }
     ids = append(ids, id)

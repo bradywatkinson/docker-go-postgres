@@ -1,12 +1,12 @@
 package customer
 
 import (
-  "database/sql"
   "context"
 
   "google.golang.org/grpc/codes"
   "google.golang.org/grpc/status"
   wrappers "github.com/golang/protobuf/ptypes/wrappers"
+  "github.com/jinzhu/gorm"
 
   "app/common"
 )
@@ -43,7 +43,7 @@ func (s *CustomerServiceInterface) GetCustomer(ctx context.Context, req *Custome
 
   if err := c.Model.readCustomer(s.app.DB); err != nil {
     switch err {
-    case sql.ErrNoRows:
+    case gorm.ErrRecordNotFound:
       return nil, status.Error(codes.NotFound, "Customer not found")
     default:
       return nil, status.Error(codes.Internal, err.Error())
@@ -64,7 +64,7 @@ func (s *CustomerServiceInterface) UpdateCustomer(ctx context.Context, req *Cust
 
   if err := c.Model.readCustomer(s.app.DB); err != nil {
     switch err {
-    case sql.ErrNoRows:
+    case gorm.ErrRecordNotFound:
       return nil, status.Error(codes.NotFound, "Customer not found")
     default:
       return nil, status. Error(codes.Internal, err.Error())

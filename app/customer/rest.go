@@ -3,13 +3,13 @@
 package customer
 
 import (
-  "database/sql"
   "net/http"
   "strconv"
   "fmt"
 
   "github.com/gorilla/mux"
   "github.com/mholt/binding"
+  "github.com/jinzhu/gorm"
 
   "app/common"
 )
@@ -49,12 +49,12 @@ func getCustomer(a *common.App) func(http.ResponseWriter, *http.Request) {
     }
 
     c := Customer{
-      Model: &CustomerModel{ID: id},
+      Model: &CustomerModel{ID: int(id)},
       Schema: &CustomerSchema{},
     }
     if err := c.Model.readCustomer(a.DB); err != nil {
       switch err {
-      case sql.ErrNoRows:
+      case gorm.ErrRecordNotFound:
         common.RespondWithError(w, http.StatusNotFound, "Customer not found")
       default:
         common.RespondWithError(w, http.StatusInternalServerError, err.Error())
@@ -78,13 +78,13 @@ func putCustomer(a *common.App) func(http.ResponseWriter, *http.Request) {
     }
 
     c := Customer{
-      Model: &CustomerModel{ID: id},
+      Model: &CustomerModel{ID: int(id)},
       Schema: &CustomerSchema{},
     }
 
     if err := c.Model.readCustomer(a.DB); err != nil {
       switch err {
-      case sql.ErrNoRows:
+      case gorm.ErrRecordNotFound:
         common.RespondWithError(w, http.StatusNotFound, "Customer not found")
       default:
         common.RespondWithError(w, http.StatusInternalServerError, err.Error())
@@ -121,7 +121,7 @@ func deleteCustomer(a *common.App) func(http.ResponseWriter, *http.Request) {
     }
 
     c := Customer{
-      Model: &CustomerModel{ID: id},
+      Model: &CustomerModel{ID: int(id)},
       Schema: nil,
     }
     if err := c.Model.deleteCustomer(a.DB); err != nil {

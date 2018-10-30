@@ -1,12 +1,12 @@
 package review
 
 import (
-  "database/sql"
   "context"
 
   "google.golang.org/grpc/codes"
   "google.golang.org/grpc/status"
   wrappers "github.com/golang/protobuf/ptypes/wrappers"
+  "github.com/jinzhu/gorm"
 
   "app/common"
 )
@@ -43,7 +43,7 @@ func (s *ReviewServiceInterface) GetReview(ctx context.Context, req *ReviewQuery
 
   if err := r.Model.readReview(s.app.DB); err != nil {
     switch err {
-    case sql.ErrNoRows:
+    case gorm.ErrRecordNotFound:
       return nil, status.Error(codes.NotFound, "Review not found")
     default:
       return nil, status.Error(codes.Internal, err.Error())
@@ -64,7 +64,7 @@ func (s *ReviewServiceInterface) UpdateReview(ctx context.Context, req *ReviewQu
 
   if err := r.Model.readReview(s.app.DB); err != nil {
     switch err {
-    case sql.ErrNoRows:
+    case gorm.ErrRecordNotFound:
       return nil, status.Error(codes.NotFound, "Review not found")
     default:
       return nil, status. Error(codes.Internal, err.Error())

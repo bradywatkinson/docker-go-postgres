@@ -18,6 +18,8 @@ import (
 var a common.App
 
 func TestMain(m *testing.M) {
+  common.InitializeLogger()
+
   a = common.App{}
   connectionString :=
     fmt.Sprintf("sslmode=disable host=%s user=%s password=%s dbname=%s",

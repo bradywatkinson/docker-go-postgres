@@ -25,8 +25,8 @@ func InitializeLogger() {
     logrus.SetLevel(logrus.DebugLevel)
     logger.Level = logrus.DebugLevel
   case "test":
-    logrus.SetOutput(ioutil.Discard)
-    logger.Out = ioutil.Discard
+    logrus.SetLevel(logrus.ErrorLevel)
+    logger.Level = logrus.ErrorLevel
   case "prod":
     logrus.SetFormatter(&logrus.JSONFormatter{})
     logger.Formatter = &logrus.JSONFormatter{}

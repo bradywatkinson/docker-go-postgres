@@ -3,13 +3,13 @@
 package review
 
 import (
-  "database/sql"
   "net/http"
   "strconv"
   "fmt"
 
   "github.com/gorilla/mux"
   "github.com/mholt/binding"
+  "github.com/jinzhu/gorm"
 
   "app/common"
 )
@@ -54,7 +54,7 @@ func getReview(a *common.App) func(http.ResponseWriter, *http.Request) {
     }
     if err := r.Model.readReview(a.DB); err != nil {
       switch err {
-      case sql.ErrNoRows:
+      case gorm.ErrRecordNotFound:
         common.RespondWithError(w, http.StatusNotFound, "Review not found")
       default:
         common.RespondWithError(w, http.StatusInternalServerError, err.Error())
@@ -84,7 +84,7 @@ func putReview(a *common.App) func(http.ResponseWriter, *http.Request) {
 
     if err := r.Model.readReview(a.DB); err != nil {
       switch err {
-      case sql.ErrNoRows:
+      case gorm.ErrRecordNotFound:
         common.RespondWithError(w, http.StatusNotFound, "Review not found")
       default:
         common.RespondWithError(w, http.StatusInternalServerError, err.Error())

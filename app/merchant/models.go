@@ -3,68 +3,42 @@
 package merchant
 
 import (
-  "database/sql"
+  "time"
+
+  "github.com/jinzhu/gorm"
 )
 
 // MerchantModel is used to load/dump from the
 // database merchant table
 type MerchantModel struct {
-  ID    int
-  Name  string
+  ID        int       `gorm:"primary_key"`
+  CreatedAt time.Time
+  UpdatedAt time.Time
+  DeletedAt *time.Time `sql:"index"`
+  Name      string
 }
 
-func (m *MerchantModel) createMerchant(db *sql.DB) error {
-  err := db.QueryRow(
-    "INSERT INTO merchant(name) VALUES($1) RETURNING id",
-    m.Name).Scan(&m.ID)
-
-  if err != nil {
-    return err
-  }
-
-  return nil
+func (m *MerchantModel) createMerchant(db *gorm.DB) error {
+  return db.Create(&m).Error
 }
 
-func (m *MerchantModel) readMerchant(db *sql.DB) error {
-  return db.QueryRow("SELECT name FROM merchant WHERE id=$1",
-    m.ID).Scan(&m.Name)
+func (m *MerchantModel) readMerchant(db *gorm.DB) error {
+  return db.First(&m, m.ID).Error
 }
 
-func (m *MerchantModel) updateMerchant(db *sql.DB) error {
-  _, err :=
-    db.Exec("UPDATE merchant SET name=$1 WHERE id=$2",
-      m.Name, m.ID)
-
-  return err
+func (m *MerchantModel) updateMerchant(db *gorm.DB) error {
+  return db.Model(&m).Updates(&m).Error
 }
 
-func (m *MerchantModel) deleteMerchant(db *sql.DB) error {
-  _, err := db.Exec("DELETE FROM merchant WHERE id=$1", m.ID)
-
-  return err
+func (m *MerchantModel) deleteMerchant(db *gorm.DB) error {
+  return db.Delete(&m).Error
 }
 
-func readMerchants(db *sql.DB, start, count int) ([]MerchantModel, error) {
-  rows, err := db.Query(
-    "SELECT id, name FROM merchant LIMIT $1 OFFSET $2",
-    count, start)
-
-  if err != nil {
-    return nil, err
-  }
-
-  defer rows.Close()
-
+func readMerchants(db *gorm.DB, start, count int) ([]MerchantModel, error) {
   merchants := []MerchantModel{}
-
-  for rows.Next() {
-    var m MerchantModel
-    if err := rows.Scan(&m.ID, &m.Name); err != nil {
-      return nil, err
-    }
-    merchants = append(merchants, m)
+  if err := db.Limit(count).Offset(start).Find(&merchants).Error; err != nil {
+    return nil, err
   }
 
   return merchants, nil
 }
-

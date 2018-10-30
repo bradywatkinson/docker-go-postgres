@@ -3,12 +3,12 @@
 package product
 
 import (
-  "database/sql"
   "context"
 
   "google.golang.org/grpc/codes"
   "google.golang.org/grpc/status"
   wrappers "github.com/golang/protobuf/ptypes/wrappers"
+  "github.com/jinzhu/gorm"
 
   "app/common"
 )
@@ -45,7 +45,7 @@ func (s *ProductServiceInterface) GetProduct(ctx context.Context, req *ProductQu
 
   if err := p.Model.readProduct(s.app.DB); err != nil {
     switch err {
-    case sql.ErrNoRows:
+    case gorm.ErrRecordNotFound:
       return nil, status.Error(codes.NotFound, "Product not found")
     default:
       return nil, status.Error(codes.Internal, err.Error())
@@ -66,7 +66,7 @@ func (s *ProductServiceInterface) UpdateProduct(ctx context.Context, req *Produc
 
   if err := p.Model.readProduct(s.app.DB); err != nil {
     switch err {
-    case sql.ErrNoRows:
+    case gorm.ErrRecordNotFound:
       return nil, status.Error(codes.NotFound, "Product not found")
     default:
       return nil, status. Error(codes.Internal, err.Error())

@@ -3,7 +3,7 @@
 package common
 
 import (
-  "database/sql"
+  "github.com/jinzhu/gorm"
 
   "github.com/gorilla/mux"
   "google.golang.org/grpc"
@@ -13,6 +13,6 @@ import (
 // App serves as the structure to hold the state of the app
 type App struct {
   Router *mux.Router
-  DB     *sql.DB
+  DB     *gorm.DB
   GRPC   *grpc.Server
 }

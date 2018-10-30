@@ -54,6 +54,11 @@
   branch = "master"
   name = "github.com/urfave/negroni"
 
+[[constraint]]
+  branch = "master"
+  name = "github.com/o1egl/gormrus"
+  source = "https://github.com/bradywatkinson/gormrus.git"
+
 [prune]
   go-tests = true
   unused-packages = true

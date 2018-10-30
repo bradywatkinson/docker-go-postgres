@@ -1,7 +1,7 @@
-from .DB import db, Base, CommittedTimestampMixin
+from .DB import db, Base, GormModelMixin
 
 
-class Product(Base, CommittedTimestampMixin):
+class Product(Base, GormModelMixin):
     id = db.Column(db.Integer(), primary_key=True)
     name = db.Column(db.UnicodeText(), nullable=False)
     price = db.Column(db.Numeric(30, 16), nullable=False)

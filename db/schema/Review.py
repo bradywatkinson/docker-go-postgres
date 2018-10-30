@@ -1,7 +1,7 @@
-from .DB import db, Base, CommittedTimestampMixin
+from .DB import db, Base, GormModelMixin
 
 
-class Review(Base, CommittedTimestampMixin):
+class Review(Base, GormModelMixin):
     id = db.Column(db.Integer(), primary_key=True)
     rating = db.Column(db.Integer(), nullable=False)
     review = db.Column(db.UnicodeText(), nullable=True)

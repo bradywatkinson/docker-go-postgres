@@ -3,13 +3,13 @@
 package merchant
 
 import (
-  "database/sql"
   "net/http"
   "strconv"
   "fmt"
 
   "github.com/gorilla/mux"
   "github.com/mholt/binding"
+  "github.com/jinzhu/gorm"
 
   "app/common"
 )
@@ -49,12 +49,12 @@ func getMerchant(a *common.App) func(http.ResponseWriter, *http.Request) {
     }
 
     m := Merchant{
-      Model: &MerchantModel{ID: id},
+      Model: &MerchantModel{ID: int(id)},
       Schema: &MerchantSchema{},
     }
     if err := m.Model.readMerchant(a.DB); err != nil {
       switch err {
-      case sql.ErrNoRows:
+      case gorm.ErrRecordNotFound:
         common.RespondWithError(w, http.StatusNotFound, "Merchant not found")
       default:
         common.RespondWithError(w, http.StatusInternalServerError, err.Error())
@@ -78,13 +78,13 @@ func putMerchant(a *common.App) func(http.ResponseWriter, *http.Request) {
     }
 
     m := Merchant{
-      Model: &MerchantModel{ID: id},
+      Model: &MerchantModel{ID: int(id)},
       Schema: &MerchantSchema{},
     }
 
     if err := m.Model.readMerchant(a.DB); err != nil {
       switch err {
-      case sql.ErrNoRows:
+      case gorm.ErrRecordNotFound:
         common.RespondWithError(w, http.StatusNotFound, "Merchant not found")
       default:
         common.RespondWithError(w, http.StatusInternalServerError, err.Error())
@@ -121,7 +121,7 @@ func deleteMerchant(a *common.App) func(http.ResponseWriter, *http.Request) {
     }
 
     m := Merchant{
-      Model: &MerchantModel{ID: id},
+      Model: &MerchantModel{ID: int(id)},
       Schema: nil,
     }
     if err := m.Model.deleteMerchant(a.DB); err != nil {

@@ -3,13 +3,13 @@
 package product
 
 import (
-  "database/sql"
   "net/http"
   "strconv"
   "fmt"
 
   "github.com/gorilla/mux"
   "github.com/mholt/binding"
+  "github.com/jinzhu/gorm"
 
   "app/common"
 )
@@ -54,7 +54,7 @@ func getProduct(a *common.App) func(http.ResponseWriter, *http.Request) {
     }
     if err := p.Model.readProduct(a.DB); err != nil {
       switch err {
-      case sql.ErrNoRows:
+      case gorm.ErrRecordNotFound:
         common.RespondWithError(w, http.StatusNotFound, "Product not found")
       default:
         common.RespondWithError(w, http.StatusInternalServerError, err.Error())
@@ -84,7 +84,7 @@ func putProduct(a *common.App) func(http.ResponseWriter, *http.Request) {
 
     if err := p.Model.readProduct(a.DB); err != nil {
       switch err {
-      case sql.ErrNoRows:
+      case gorm.ErrRecordNotFound:
         common.RespondWithError(w, http.StatusNotFound, "Product not found")
       default:
         common.RespondWithError(w, http.StatusInternalServerError, err.Error())

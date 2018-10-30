@@ -3,11 +3,13 @@
 package common
 
 import (
-  "database/sql"
+  "strings"
 
+  "github.com/jinzhu/gorm"
   _ "github.com/lib/pq" // postgres sql driver
 
   log "github.com/sirupsen/logrus"
+  "github.com/o1egl/gormrus"
 )
 
 
@@ -17,8 +19,14 @@ import (
 func (a *App) InitializeDB(connectionString string) {
 
   var err error
-  a.DB, err = sql.Open("postgres", connectionString)
+  a.DB, err = gorm.Open("postgres", connectionString)
   if err != nil {
     log.Fatal(err)
+  }
+  a.DB.LogMode(true)
+  a.DB.SetLogger(gormrus.NewWithLogger(logger))
+  a.DB.SingularTable(true)
+  gorm.DefaultTableNameHandler = func (db *gorm.DB, tableName string) string  {
+    return strings.TrimSuffix(tableName, "_model")
   }
 }
