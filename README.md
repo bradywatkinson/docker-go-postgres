@@ -28,8 +28,6 @@ This lead me to develop Golang Database Service Boilerplate; a simple service to
 
 If you have any questions, comments, or suggestions, join my slack (www.slack.bradywatkinson.com) and join the `go-db-service-boilerplate` channel.
 
-## Licensing
+## License
 
-Golang Database Service Boilerplate is available to use for any open source application released under a license compatible with the GNU GPL License v3, under the terms of the GPL_v3. You can read more about this license [here](https://www.gnu.org/licenses/quick-guide-gplv3.en.html).
-
-If you want to use Golang Database Service Boilerplate for a closed source/proprietary project, you can instead purchase a commercial license by contacting me directly at brady@watkinson.io.
+This project is licensed under the MIT license, Copyright (c) 2018 Brady Watkinson. For more information see LICENSE.md.
