@@ -147,6 +147,16 @@ func getReviews(a *common.App) func(http.ResponseWriter, *http.Request) {
       return
     }
 
-    common.RespondWithJSON(w, http.StatusOK, reviews)
+    res := &ReviewsResponse{
+      Reviews: []*ReviewSchema{},
+    }
+
+    for _, r := range reviews {
+      tmp := &ReviewSchema{}
+      copyModel(&r, tmp)
+      res.Reviews = append(res.Reviews, tmp)
+    }
+
+    common.RespondWithJSON(w, http.StatusOK, res)
   }
 }

@@ -147,6 +147,16 @@ func getMerchants(a *common.App) func(http.ResponseWriter, *http.Request) {
       return
     }
 
-    common.RespondWithJSON(w, http.StatusOK, merchants)
+    res := &MerchantsResponse{
+      Merchants: []*MerchantSchema{},
+    }
+
+    for _, m := range merchants {
+      tmp := &MerchantSchema{}
+      copyModel(&m, tmp)
+      res.Merchants = append(res.Merchants, tmp)
+    }
+
+    common.RespondWithJSON(w, http.StatusOK, res)
   }
 }

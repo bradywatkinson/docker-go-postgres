@@ -147,6 +147,16 @@ func getProducts(a *common.App) func(http.ResponseWriter, *http.Request) {
       return
     }
 
-    common.RespondWithJSON(w, http.StatusOK, products)
+    res := &ProductsResponse{
+      Products: []*ProductSchema{},
+    }
+
+    for _, p := range products {
+      tmp := &ProductSchema{}
+      copyModel(&p, tmp)
+      res.Products = append(res.Products, tmp)
+    }
+
+    common.RespondWithJSON(w, http.StatusOK, res)
   }
 }

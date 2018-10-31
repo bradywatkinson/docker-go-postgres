@@ -147,6 +147,16 @@ func getCustomers(a *common.App) func(http.ResponseWriter, *http.Request) {
       return
     }
 
-    common.RespondWithJSON(w, http.StatusOK, customers)
+    res := &CustomersResponse{
+      Customers: []*CustomerSchema{},
+    }
+
+    for _, c := range customers {
+      tmp := &CustomerSchema{}
+      copyModel(&c, tmp)
+      res.Customers = append(res.Customers, tmp)
+    }
+
+    common.RespondWithJSON(w, http.StatusOK, res)
   }
 }
